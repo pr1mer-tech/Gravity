@@ -36,7 +36,9 @@ internal class Cache<T>: ObservableObject {
     
     func revalidate() {
         self.cache.fetcher { newValue in
-            self.set(value: newValue)
+            DispatchQueue.main.async {
+                self.set(value: newValue)
+            }
         }
     }
     
