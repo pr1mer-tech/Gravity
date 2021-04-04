@@ -42,7 +42,7 @@ internal class Cache<T>: ObservableObject {
     
     func startTimer() {
         timer?.invalidate()   // just in case you had existing `Timer`, `invalidate` it before we lose our reference to it
-        timer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) {_ in 
+        timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) {_ in 
             self.revalidate()
         }
     }
