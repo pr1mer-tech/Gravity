@@ -3,10 +3,10 @@ import SwiftUI
 @available(iOS 13.0, macOS 11, tvOS 13.0, watchOS 6.0, *)
 @propertyWrapper
 public struct SWR<Value> : DynamicProperty {
-    let id = UUID()
+    internal let id = UUID()
     @ObservedObject var cache = Cache.shared
     
-    init(wrapperValue value: Value, fetcher: @escaping Fetcher<Value>) {
+    public init(wrapperValue value: Value, fetcher: @escaping Fetcher<Value>) {
         let row = Cache.CacheValue<Value>(cachedResponse: StateResponse<Value>(data: value),
                                    fetcher: fetcher)
         
