@@ -14,6 +14,8 @@ struct CacheValue<T> {
 }
 
 internal class Cache<T>: ObservableObject {
+    weak var timer: Timer?
+    
     @Published var cache: CacheValue<T>
     
     init(initialData: CacheValue<T>) {
@@ -32,11 +34,26 @@ internal class Cache<T>: ObservableObject {
         cache.cachedResponse = value
     }
     
-    func revalidate(key: UUID) {
-        DispatchQueue.global().async {
-            self.cache.fetcher { newValue in
-                self.set(value: newValue)
-            }
+    func revalidate() {
+        self.cache.fetcher { newValue in
+            self.set(value: newValue)
         }
+    }
+    
+    func startTimer() {
+        timer?.invalidate()   // just in case you had existing `Timer`, `invalidate` it before we lose our reference to it
+        timer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) {_ in 
+            self.revalidate()
+        }
+    }
+
+    func stopTimer() {
+        timer?.invalidate()
+    }
+
+    // if appropriate, make sure to stop your timer in `deinit`
+
+    deinit {
+        stopTimer()
     }
 }

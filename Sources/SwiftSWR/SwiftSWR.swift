@@ -2,7 +2,6 @@ import SwiftUI
 
 @propertyWrapper
 public struct SWR<Value> : DynamicProperty {
-    internal let id = UUID()
     @ObservedObject var cache: Cache<Value>
     
     public init(wrapperValue value: Value, fetcher: @escaping Fetcher<Value>) {
@@ -11,7 +10,9 @@ public struct SWR<Value> : DynamicProperty {
         
         cache = Cache(initialData: row)
         
-        cache.revalidate(key: id)
+        cache.revalidate()
+        
+        cache.startTimer()
     }
 
     public var wrappedValue: StateResponse<Value> {
