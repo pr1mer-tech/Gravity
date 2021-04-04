@@ -9,12 +9,12 @@ import SwiftUI
 
 @available(OSX 10.15, *)
 public class StateResponse<Value>: ObservableObject {
-    var awaiting: Bool {
+    public var awaiting: Bool {
         return data == nil
     }
     
-    @Published var error: Error? = nil
-    @Published var data: Value? = nil
+    @Published public var error: Error? = nil
+    @Published public var data: Value? = nil
     /// Default init
     init() {}
     /// Create StateResponse with an error
