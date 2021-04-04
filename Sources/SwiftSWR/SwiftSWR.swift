@@ -23,3 +23,10 @@ public struct SWR<Value> : DynamicProperty {
         }
     }
 }
+
+
+public extension SWR where Value: ExpressibleByNilLiteral {
+    init(fetcher: @escaping Fetcher<Value>) {
+        self.init(wrapperValue: nil, fetcher: fetcher)
+    }
+}
