@@ -4,7 +4,7 @@ import SwiftUI
 public struct SWR<Value> : DynamicProperty {
     @ObservedObject var cache: Cache<Value>
     
-    internal init(wrapperValue value: Value?, fetcher: @escaping Fetcher<Value>) {
+    public init(wrapperValue value: Value?, fetcher: @escaping Fetcher<Value>) {
         let row = CacheValue<Value>(cachedResponse: StateResponse<Value>(data: value),
                                    fetcher: fetcher)
         
@@ -37,5 +37,11 @@ public extension SWR {
         guard let uri = URL(string: url) else { fatalError("[SwiftSWR] Invalid URL: \(url)") }
         let fetcher = FetcherDecodeJSON(url: uri, type: Value.self)
         self.init(fetcher: fetcher)
+    }
+    /// JSON Decoder init
+    init(wrapperValue value: Value?, url: String) where Value: Decodable {
+        guard let uri = URL(string: url) else { fatalError("[SwiftSWR] Invalid URL: \(url)") }
+        let fetcher = FetcherDecodeJSON(url: uri, type: Value.self)
+        self.init(wrapperValue: value, fetcher: fetcher)
     }
 }
