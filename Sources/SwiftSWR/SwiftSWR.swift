@@ -6,7 +6,7 @@ public struct SWR<Value> : DynamicProperty {
     let id = UUID()
     @ObservedObject var cache = Cache.shared
     
-    init(wrapperValue value: Value? = nil, fetcher: @escaping Fetcher<Value>) {
+    init(wrapperValue value: Value, fetcher: @escaping Fetcher<Value>) {
         let row = Cache.CacheValue<Value>(cachedResponse: StateResponse<Value>(data: value),
                                    fetcher: fetcher)
         
