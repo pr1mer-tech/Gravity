@@ -8,40 +8,34 @@
 import Combine
 import Foundation
 
+struct CacheValue<T> {
+    var cachedResponse: StateResponse<T>
+    let fetcher: Fetcher<T>
+}
 
-internal class Cache: ObservableObject {
-    struct CacheValue<T> {
-        var cachedResponse: StateResponse<T>
-        let fetcher: Fetcher<T>
-    }
+internal class Cache<T>: ObservableObject {
+    @Published var cache: CacheValue<T>
     
-    @Published var cache = [UUID: CacheValue<Any>]()
-    
-    static let shared = Cache()
-    
-    init(initialData: [UUID: CacheValue<Any>] = [:]) {
+    init(initialData: CacheValue<T>) {
         cache = initialData
     }
     
-    func get(key: UUID) -> StateResponse<Any>? {
-        guard let entry = cache[key] else { return nil }
-        let res = entry.cachedResponse
-        return res
+    var get: StateResponse<T> {
+        return cache.cachedResponse
     }
     
-    func set(key: UUID, value: CacheValue<Any>) {
-        cache[key] = value
+    func set(value: CacheValue<T>) {
+        cache = value
     }
 
-    func set(key: UUID, value: StateResponse<Any>) {
-        cache[key]?.cachedResponse = value
+    func set(value: StateResponse<T>) {
+        cache.cachedResponse = value
     }
     
     func revalidate(key: UUID) {
-        guard let entry = cache[key] else { return }
         DispatchQueue.global().async {
-            entry.fetcher { newValue in
-                self.set(key: key, value: newValue)
+            self.cache.fetcher { newValue in
+                self.set(value: newValue)
             }
         }
     }

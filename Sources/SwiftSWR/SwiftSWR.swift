@@ -1,25 +1,25 @@
 import SwiftUI
 
-@available(iOS 13.0, macOS 11, tvOS 13.0, watchOS 6.0, *)
 @propertyWrapper
 public struct SWR<Value> : DynamicProperty {
     internal let id = UUID()
-    @ObservedObject var cache = Cache.shared
+    @ObservedObject var cache: Cache<Value>
     
     public init(wrapperValue value: Value, fetcher: @escaping Fetcher<Value>) {
-        let row = Cache.CacheValue<Value>(cachedResponse: StateResponse<Value>(data: value),
+        let row = CacheValue<Value>(cachedResponse: StateResponse<Value>(data: value),
                                    fetcher: fetcher)
         
-        cache.set(key: id, value: row as! Cache.CacheValue<Any>)
+        cache = Cache(initialData: row)
+        
         cache.revalidate(key: id)
     }
 
     public var wrappedValue: StateResponse<Value> {
         get {
-            guard let res = cache.get(key: id) else {
-                return StateResponse<Value>(error: SWRError.CacheError)
-            }
-            return res as! StateResponse<Value>
+            return cache.get
+        }
+        nonmutating set {
+            cache.set(value: newValue)
         }
     }
 }
