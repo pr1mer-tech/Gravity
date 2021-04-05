@@ -13,7 +13,7 @@ public typealias Fetcher<T> = (_ callback: @escaping (StateResponse<T>) -> Void)
 /// Fetch Data from URL
 public func FetcherURL(url: URL) -> Fetcher<Data> {
     return { callback in
-        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+        let task = Cache.shared.dataTask(with: url) { (data, response, error) in
             guard let data = data else {
                 callback(StateResponse(error: error ?? URLError(.unknown)))
                 return
@@ -22,14 +22,14 @@ public func FetcherURL(url: URL) -> Fetcher<Data> {
             callback(StateResponse(data: data, error: error))
         }
         
-        task.resume()
+        task?.resume()
     }
 }
 
 /// Fetch and serialize JSON from URL
 public func FetcherJSON(url: URL) -> Fetcher<[String: Any]> {
     return { callback in
-        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+        let task = Cache.shared.dataTask(with: url) { (data, response, error) in
             guard let data = data else {
                 callback(StateResponse(error: error ?? URLError(.unknown)))
                 return
@@ -45,14 +45,14 @@ public func FetcherJSON(url: URL) -> Fetcher<[String: Any]> {
             }
         }
         
-        task.resume()
+        task?.resume()
     }
 }
 
 /// Fetch and decode JSON from URL
 public func FetcherDecodeJSON<Object>(url: URL, type jsonType: Object.Type) -> Fetcher<Object> where Object: Decodable {
     return { callback in
-        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+        let task = Cache.shared.dataTask(with: url) { (data, response, error) in
             guard let data = data else {
                 callback(StateResponse(error: error ?? URLError(.unknown)))
                 return
@@ -65,6 +65,6 @@ public func FetcherDecodeJSON<Object>(url: URL, type jsonType: Object.Type) -> F
             }
         }
         
-        task.resume()
+        task?.resume()
     }
 }

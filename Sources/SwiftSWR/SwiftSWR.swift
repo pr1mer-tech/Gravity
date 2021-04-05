@@ -2,13 +2,13 @@ import SwiftUI
 
 @propertyWrapper
 public struct SWR<Value> : DynamicProperty {
-    @ObservedObject var cache: Cache<Value>
+    @ObservedObject var cache: LocalCache<Value>
     
     public init(wrapperValue value: Value?, fetcher: @escaping Fetcher<Value>, options: SWROptions = .init()) {
-        let row = CacheValue<Value>(cachedResponse: StateResponse<Value>(data: value),
+        let row = LocalCacheValue<Value>(cachedResponse: StateResponse<Value>(data: value),
                                    fetcher: fetcher)
         
-        cache = Cache(initialData: row)
+        cache = LocalCache(initialData: row)
         
         cache.revalidate()
         // Refresh

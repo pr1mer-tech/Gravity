@@ -9,18 +9,18 @@ import Combine
 import Foundation
 import Network
 
-struct CacheValue<T> {
+struct LocalCacheValue<T> {
     var cachedResponse: StateResponse<T>
     let fetcher: Fetcher<T>
 }
 
-internal class Cache<T>: ObservableObject {
+internal class LocalCache<T>: ObservableObject {
     weak var timer: Timer?
     let monitor = NWPathMonitor()
     
-    @Published var cache: CacheValue<T>
+    @Published var cache: LocalCacheValue<T>
     
-    init(initialData: CacheValue<T>) {
+    init(initialData: LocalCacheValue<T>) {
         cache = initialData
     }
     
@@ -28,7 +28,7 @@ internal class Cache<T>: ObservableObject {
         return cache.cachedResponse
     }
     
-    func set(value: CacheValue<T>) {
+    func set(value: LocalCacheValue<T>) {
         cache = value
     }
 
