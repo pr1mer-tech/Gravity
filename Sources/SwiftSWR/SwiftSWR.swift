@@ -3,7 +3,7 @@ import SwiftUI
 @propertyWrapper
 public struct SWR<Value> : DynamicProperty {
     @ObservedObject var cache: LocalCache<Value>
-    
+    // Initialize with value
     public init(wrappedValue value: Value, fetcher: @escaping Fetcher<Value>, options: SWROptions = .init()) {
         let row = LocalCacheValue<Value>(cachedResponse: StateResponse<Value>(data: value),
                                    fetcher: fetcher)
@@ -14,7 +14,18 @@ public struct SWR<Value> : DynamicProperty {
         // Refresh
         cache.setupRefresh(options)
     }
-
+    // Initialize without value
+    public init(fetcher: @escaping Fetcher<Value>, options: SWROptions = .init()) {
+        let row = LocalCacheValue<Value>(cachedResponse: StateResponse<Value>(),
+                                   fetcher: fetcher)
+        
+        cache = LocalCache(initialData: row)
+        
+        cache.revalidate()
+        // Refresh
+        cache.setupRefresh(options)
+    }
+    
     public var wrappedValue: StateResponse<Value> {
         get {
             return cache.get
@@ -32,15 +43,6 @@ public extension SWR {
         let fetcher = FetcherDecodeJSON(url: uri, type: Value.self)
         self.init(wrappedValue: value, fetcher: fetcher, options: options)
     }
-}
-
-/// Nil value Inits
-public extension SWR where Value: ExpressibleByNilLiteral {
-    /// Public init
-    init(fetcher: @escaping Fetcher<Value>, options: SWROptions = .init()) {
-        self.init(wrappedValue: nil, fetcher: fetcher, options: options)
-    }
-    
     /// JSON Decoder init
     init(url: String, options: SWROptions = .init()) where Value: Decodable {
         guard let uri = URL(string: url) else { fatalError("[SwiftSWR] Invalid URL: \(url)") }
