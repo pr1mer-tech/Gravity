@@ -64,9 +64,15 @@ public class Cache {
         
         // Check cache
         let now = Date().timeIntervalSinceReferenceDate // Get TimeStamp
-        guard let entry = try? get(key: key) else { return task }
+        guard let entry = try? get(key: key) else {
+            self.onGoing.append(key)
+            return task
+        }
         let then = entry.timestamp
-        guard now - then < 1 else { return task }
+        guard now - then < 1 else {
+            self.onGoing.append(key)
+            return task
+        }
         
         // Return from cache
         completionHandler(entry.data, nil, nil)
