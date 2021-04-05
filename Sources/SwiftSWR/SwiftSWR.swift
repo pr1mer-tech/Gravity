@@ -28,20 +28,20 @@ public struct SWR<Value> : DynamicProperty {
 
 public extension SWR {
     /// Public init
-    init(fetcher: @escaping Fetcher<Value>) {
-        self.init(wrapperValue: nil, fetcher: fetcher)
+    init(fetcher: @escaping Fetcher<Value>, options: SWROptions = .init()) {
+        self.init(wrapperValue: nil, fetcher: fetcher, options: options)
     }
     
     /// JSON Decoder init
-    init(url: String) where Value: Decodable {
+    init(url: String, options: SWROptions = .init()) where Value: Decodable {
         guard let uri = URL(string: url) else { fatalError("[SwiftSWR] Invalid URL: \(url)") }
         let fetcher = FetcherDecodeJSON(url: uri, type: Value.self)
-        self.init(fetcher: fetcher)
+        self.init(fetcher: fetcher, options: options)
     }
     /// JSON Decoder init
-    init(wrapperValue value: Value?, url: String) where Value: Decodable {
+    init(wrapperValue value: Value?, url: String, options: SWROptions = .init()) where Value: Decodable {
         guard let uri = URL(string: url) else { fatalError("[SwiftSWR] Invalid URL: \(url)") }
         let fetcher = FetcherDecodeJSON(url: uri, type: Value.self)
-        self.init(wrapperValue: value, fetcher: fetcher)
+        self.init(wrapperValue: value, fetcher: fetcher, options: options)
     }
 }
