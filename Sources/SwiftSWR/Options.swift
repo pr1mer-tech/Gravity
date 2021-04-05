@@ -10,6 +10,6 @@ import Foundation
 public struct SWROptions {
     public static let `default` = SWROptions()
     /// In many cases, data changes because it's based on something happening in real time. SWR lets you define a refreshing interval. If it's 0, it will be disabled.
-    public let refreshInterval: TimeInterval = 0
-    public let revalidateOnReconnect: Bool = true
+    public var refreshInterval: TimeInterval = 0
+    public var revalidateOnReconnect: Bool = true
 }
