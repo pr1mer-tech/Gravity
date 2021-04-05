@@ -7,6 +7,7 @@
 
 import Combine
 import Foundation
+import Network
 
 struct CacheValue<T> {
     var cachedResponse: StateResponse<T>
@@ -15,6 +16,7 @@ struct CacheValue<T> {
 
 internal class Cache<T>: ObservableObject {
     weak var timer: Timer?
+    let monitor = NWPathMonitor()
     
     @Published var cache: CacheValue<T>
     
@@ -42,9 +44,28 @@ internal class Cache<T>: ObservableObject {
         }
     }
     
-    func startTimer() {
+    // MARK: Refresh
+    func setupRefresh(_ options: SWROptions) {
+        startTimer(delay: options.refreshInterval)
+        
+        let queue = DispatchQueue(label: "Monitor")
+        monitor.start(queue: queue)
+        monitor.pathUpdateHandler = { path in
+            if path.isExpensive {
+                self.stopTimer()
+            } else {
+                self.startTimer(delay: options.refreshInterval)
+            }
+            if path.status == .satisfied && options.revalidateOnReconnect {
+                self.revalidate()
+            }
+        }
+    }
+    
+    func startTimer(delay: TimeInterval = 15) {
         timer?.invalidate()   // just in case you had existing `Timer`, `invalidate` it before we lose our reference to it
-        timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) {_ in 
+        guard delay > 0 else { return }
+        timer = Timer.scheduledTimer(withTimeInterval: delay, repeats: true) {_ in
             self.revalidate()
         }
     }
