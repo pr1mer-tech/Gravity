@@ -4,7 +4,7 @@ import SwiftUI
 public struct SWR<Value> : DynamicProperty {
     @ObservedObject var cache: Cache<Value>
     
-    public init(wrapperValue value: Value?, fetcher: @escaping Fetcher<Value>, options: SWROptions = .default) {
+    public init(wrapperValue value: Value?, fetcher: @escaping Fetcher<Value>, options: SWROptions = .init()) {
         let row = CacheValue<Value>(cachedResponse: StateResponse<Value>(data: value),
                                    fetcher: fetcher)
         
