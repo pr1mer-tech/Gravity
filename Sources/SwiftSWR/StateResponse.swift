@@ -24,8 +24,8 @@ public class StateResponse<Value>: ObservableObject {
         self.error = error
         self.identifier = id
     }
-    
-    func revalidate(mutated: Value? = nil) {
+    /// Revalidate current SWR
+    public func revalidate(mutated: Value? = nil) {
         guard let id = identifier else { return }
         Cache.shared.notification.post(name: .init(String(id)), object: nil)
         guard let mutated = mutated else { return }
