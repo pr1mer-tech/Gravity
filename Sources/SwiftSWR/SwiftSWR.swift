@@ -21,7 +21,7 @@ public struct SWR<Value> : DynamicProperty {
         
         controller = SWRState(id: self.identifier, initialData: row)
         
-        controller.revalidate()
+        controller.revalidate(force: false)
         // Refresh
         controller.setupRefresh(options)
     }
@@ -37,7 +37,7 @@ public struct SWR<Value> : DynamicProperty {
         
         controller = SWRState(id: self.identifier, initialData: row)
         
-        controller.revalidate()
+        controller.revalidate(force: false)
         // Refresh
         controller.setupRefresh(options)
     }

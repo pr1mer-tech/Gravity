@@ -54,7 +54,10 @@ internal class SWRState<T>: ObservableObject {
         }
     }
     
-    func revalidate() {
+    func revalidate(force: Bool = true) {
+        if !force && object.cachedResponse.data != nil {
+            return
+        }
         self.object.fetcher { newValue in
             DispatchQueue.main.async {
                 self.set(value: newValue)
@@ -66,6 +69,8 @@ internal class SWRState<T>: ObservableObject {
     func setupRefresh(_ options: SWROptions) {
         startTimer(delay: options.refreshInterval)
         
+        // Just in case there was another queue
+        monitor.cancel()
         let queue = DispatchQueue(label: "Monitor")
         monitor.start(queue: queue)
         monitor.pathUpdateHandler = { path in
