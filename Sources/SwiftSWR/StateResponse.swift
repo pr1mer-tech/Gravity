@@ -27,11 +27,14 @@ public class StateResponse<Value>: ObservableObject {
     /// Revalidate current SWR
     public func revalidate(mutated: Value? = nil, makeRequest: Bool = true) {
         guard let id = identifier else { return }
-        if makeRequest {
-            Cache.shared.notification.post(name: .init(String(id)), object: nil)
+        var dictionary: [String: Any] = [
+            "makeRequest": makeRequest
+        ]
+        
+        if mutated != nil {
+            dictionary["mutated"] = mutated!
         }
-        guard let mutated = mutated else { return }
-        self.data = mutated
+        Cache.shared.notification.post(name: .init(String(id)), object: nil, userInfo: dictionary)
     }
 }
 

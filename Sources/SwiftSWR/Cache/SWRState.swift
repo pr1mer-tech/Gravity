@@ -26,8 +26,15 @@ internal class SWRState<T>: ObservableObject {
         object = initialData
         identifier = id
         
-        Cache.shared.notification.addObserver(forName: .init(String(id)), object: nil, queue: nil) { _ in
-            self.revalidate()
+        Cache.shared.notification.addObserver(forName: .init(String(id)), object: nil, queue: nil) { notification in
+            guard let userInfos = notification.userInfo else { return }
+            guard let makeRequest = userInfos["makeRequest"] as? Bool else { return }
+            if makeRequest {
+                self.revalidate()
+            }
+            
+            guard let mutated = userInfos["mutated"] as? T else { return }
+            self.object.cachedResponse.data = mutated
         }
     }
     
