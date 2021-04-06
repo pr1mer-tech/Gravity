@@ -15,20 +15,21 @@ public class StateResponse<Value>: ObservableObject {
     
     @Published public var error: Error? = nil
     @Published public var data: Value? = nil
-    /// Default init
-    init() {}
-    /// Create StateResponse with an error
-    init(error: Error?) {
-        self.error = error
-    }
-    /// Create StateResponse with an error
-    init(data: Value?) {
-        self.data = data
-    }
+    
+    internal let identifier: Int?
+    
     /// Create StateResponse
-    init(data: Value?, error: Error?) {
+    init(id: Int? = nil, data: Value? = nil, error: Error? = nil) {
         self.data = data
         self.error = error
+        self.identifier = id
+    }
+    
+    func revalidate(mutated: Value? = nil) {
+        guard let id = identifier else { return }
+        Cache.shared.notification.post(name: .init(String(id)), object: nil)
+        guard let mutated = mutated else { return }
+        self.data = mutated
     }
 }
 

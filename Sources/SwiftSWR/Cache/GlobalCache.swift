@@ -11,6 +11,8 @@ import Combine
 public class Cache {
     public static var shared = Cache()
     
+    let notification = NotificationCenter()
+    
     struct RequestCache {
         let timestamp: TimeInterval
         let data: Data

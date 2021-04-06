@@ -9,35 +9,42 @@ import Combine
 import Foundation
 import Network
 
-struct LocalCacheValue<T> {
+struct SWRStateObject<T> {
     var cachedResponse: StateResponse<T>
     let fetcher: Fetcher<T>
 }
 
-internal class LocalCache<T>: ObservableObject {
+internal class SWRState<T>: ObservableObject {
     weak var timer: Timer?
     let monitor = NWPathMonitor()
     
-    @Published var cache: LocalCacheValue<T>
+    @Published var object: SWRStateObject<T>
     
-    init(initialData: LocalCacheValue<T>) {
-        cache = initialData
+    let identifier: Int
+    
+    init(id: Int, initialData: SWRStateObject<T>) {
+        object = initialData
+        identifier = id
+        
+        Cache.shared.notification.addObserver(forName: .init(String(id)), object: nil, queue: nil) { _ in
+            self.revalidate()
+        }
     }
     
     var get: StateResponse<T> {
-        return cache.cachedResponse
+        return object.cachedResponse
     }
     
-    func set(value: LocalCacheValue<T>) {
-        cache = value
+    func set(value: SWRStateObject<T>) {
+        object = value
     }
 
     func set(value: StateResponse<T>) {
-        cache.cachedResponse = value
+        object.cachedResponse = StateResponse(id: self.identifier, data: value.data, error: value.error)
     }
     
     func revalidate() {
-        self.cache.fetcher { newValue in
+        self.object.fetcher { newValue in
             DispatchQueue.main.async {
                 self.set(value: newValue)
             }
