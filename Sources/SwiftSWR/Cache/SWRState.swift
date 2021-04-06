@@ -34,7 +34,9 @@ internal class SWRState<T>: ObservableObject {
             }
             
             guard let mutated = userInfos["mutated"] as? T else { return }
-            self.object.cachedResponse.data = mutated
+            DispatchQueue.main.async {
+                self.set(value: StateResponse(id: self.identifier, data: mutated, error: nil))
+            }
         }
     }
     
