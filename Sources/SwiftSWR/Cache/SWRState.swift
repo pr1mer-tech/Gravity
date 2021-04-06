@@ -26,18 +26,7 @@ internal class SWRState<T>: ObservableObject {
         object = initialData
         identifier = id
         
-        Cache.shared.notification.addObserver(forName: .init(String(id)), object: nil, queue: nil) { notification in
-            guard let userInfos = notification.userInfo else { return }
-            guard let makeRequest = userInfos["makeRequest"] as? Bool else { return }
-            if makeRequest {
-                self.revalidate()
-            }
-            
-            guard let mutated = userInfos["mutated"] as? T else { return }
-            DispatchQueue.main.async {
-                self.set(value: StateResponse(id: self.identifier, data: mutated, error: nil))
-            }
-        }
+        Cache.shared.notification.addObserver(self, selector: #selector(mutate(_:)), name: .init(String(id)), object: nil)
     }
     
     var get: StateResponse<T> {
@@ -50,6 +39,19 @@ internal class SWRState<T>: ObservableObject {
 
     func set(value: StateResponse<T>) {
         object.cachedResponse = StateResponse(id: self.identifier, data: value.data, error: value.error)
+    }
+    
+    @objc func mutate(_ notification: Notification) {
+        guard let userInfos = notification.userInfo else { return }
+        guard let makeRequest = userInfos["makeRequest"] as? Bool else { return }
+        if makeRequest {
+            self.revalidate()
+        }
+        
+        guard let mutated = userInfos["mutated"] as? T else { return }
+        DispatchQueue.main.async {
+            self.set(value: StateResponse(id: self.identifier, data: mutated, error: nil))
+        }
     }
     
     func revalidate() {
@@ -93,6 +95,7 @@ internal class SWRState<T>: ObservableObject {
     // if appropriate, make sure to stop your timer in `deinit`
 
     deinit {
-        stopTimer()
+        stopTimer();
+        Cache.shared.notification.removeObserver(self, name: .init(String(self.identifier)), object: nil)
     }
 }
