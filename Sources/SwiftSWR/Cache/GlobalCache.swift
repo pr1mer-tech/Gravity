@@ -13,7 +13,12 @@ public class Cache {
     
     let notification = NotificationCenter()
     
-    var cache: [Int: Data] = [:]
+    struct CacheEntry {
+        let timestamp: TimeInterval
+        let data: Data
+    }
+    
+    var cache: [Int: CacheEntry] = [:]
     var onGoing = [Int]()
     var queued: [Int: [(Data?, Error?) -> Void]] = [:]
     
@@ -28,7 +33,7 @@ public class Cache {
         let key = hasher.finalize()
         
         guard let entry = cache[key] else { throw CacheError.invalidKey }
-        return entry
+        return entry.data
     }
     /// Write to the cache
     func set<Key>(for location: Key, value: Data) where Key: Hashable {
@@ -37,7 +42,8 @@ public class Cache {
         location.hash(into: &hasher)
         let key = hasher.finalize()
         
-        cache[key] = value
+        cache[key] = CacheEntry(timestamp: Date().timeIntervalSince1970,
+                                data: value)
     }
     /// Fetch and store data in the cache
     public func request<Key, Value>(from location: Key, using fetcher: Fetcher<Key, Value>, completionHandler: @escaping (Data?, Error?) -> Void) {
@@ -53,6 +59,12 @@ public class Cache {
                 queued[key] = [completionHandler]
             }
             return
+        }
+        // Limit number of requests
+        let now = Date().timeIntervalSince1970
+        let then = cache[key]?.timestamp
+        if then != nil && now - then! <= 1 {
+            completionHandler(cache[key]?.data, nil)
         }
         
         // Register task
