@@ -90,7 +90,14 @@ internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
         guard monitor.pathUpdateHandler == nil else { return }
         let queue = DispatchQueue(label: "Monitor")
         monitor.start(queue: queue)
+        
+        var setup = true
+        
         monitor.pathUpdateHandler = { path in
+            guard !setup else {
+                setup = false
+                return
+            }
             if path.isExpensive {
                 self.stopTimer()
             } else {
@@ -100,6 +107,8 @@ internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
                 self.revalidate()
             }
         }
+        
+        setup = false
     }
     
     func startTimer(delay: TimeInterval = 15) {
