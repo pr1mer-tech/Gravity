@@ -52,6 +52,13 @@ public class Cache {
         location.hash(into: &hasher)
         let key = hasher.finalize()
         
+        // Limit number of requests
+        let now = Date().timeIntervalSince1970
+        let then = cache[key]?.timestamp
+        if then != nil && now - then! <= 1 {
+            completionHandler(cache[key]?.data, nil)
+        }
+        
         if onGoing.contains(key) {
             if queued[key] != nil {
                 queued[key]?.append(completionHandler)
@@ -59,12 +66,6 @@ public class Cache {
                 queued[key] = [completionHandler]
             }
             return
-        }
-        // Limit number of requests
-        let now = Date().timeIntervalSince1970
-        let then = cache[key]?.timestamp
-        if then != nil && now - then! <= 1 {
-            completionHandler(cache[key]?.data, nil)
         }
         
         // Register task
