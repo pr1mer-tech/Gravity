@@ -9,36 +9,35 @@ import Combine
 import Foundation
 import Network
 
-struct SWRStateObject<T> {
-    var cachedResponse: StateResponse<T>
-    let fetcher: Fetcher<T>
-}
-
-internal class SWRState<T>: ObservableObject {
+internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
     weak var timer: Timer?
     let monitor = NWPathMonitor()
     
-    @Published var object: SWRStateObject<T>
+    let fetcher: Fetcher<Key, Value>
     
-    let identifier: Int
+    @Published var object: StateResponse<Key, Value>
     
-    init(id: Int, initialData: SWRStateObject<T>) {
-        object = initialData
-        identifier = id
+    let key: Key
+    
+    init(key: Key, fetcher: Fetcher<Key, Value>, data: Value? = nil) {
+        self.fetcher = fetcher
+        self.key = key
         
+        object = StateResponse(key: key, data: data)
+        
+        // Listener
+        var hasher = Hasher()
+        key.hash(into: &hasher)
+        let id = hasher.finalize()
         Cache.shared.notification.addObserver(self, selector: #selector(mutate(_:)), name: .init(String(id)), object: nil)
     }
     
-    var get: StateResponse<T> {
-        return object.cachedResponse
-    }
-    
-    func set(value: SWRStateObject<T>) {
-        object = value
+    var get: StateResponse<Key, Value> {
+        return object
     }
 
-    func set(value: StateResponse<T>) {
-        object.cachedResponse = StateResponse(id: self.identifier, data: value.data, error: value.error)
+    func set(data: Value?, error: Error? = nil) {
+        object = StateResponse(key: key, data: data, error: error)
     }
     
     @objc func mutate(_ notification: Notification) {
@@ -48,19 +47,34 @@ internal class SWRState<T>: ObservableObject {
             self.revalidate()
         }
         
-        guard let mutated = userInfos["mutated"] as? T else { return }
+        guard let mutated = userInfos["mutated"] as? Value else { return }
         DispatchQueue.main.async {
-            self.set(value: StateResponse(id: self.identifier, data: mutated, error: nil))
+            self.set(data: mutated)
         }
     }
     
     func revalidate(force: Bool = true) {
-        if !force && object.cachedResponse.data != nil {
+        if !force, let cached = try? Cache.shared.get(for: key) {
+            do {
+                let decoded = try fetcher.decode(data: cached)
+                self.set(data: decoded)
+            } catch {
+                self.set(data: nil, error: error)
+            }
             return
         }
-        self.object.fetcher { newValue in
+        Cache.shared.getFromCache(location: key, using: fetcher) { (data, error) in
             DispatchQueue.main.async {
-                self.set(value: newValue)
+                do {
+                    guard let data = data else {
+                        self.set(data: nil, error: error)
+                        return
+                    }
+                    let decoded = try self.fetcher.decode(data: data)
+                    self.set(data: decoded, error: error)
+                } catch {
+                    self.set(data: nil, error: error)
+                }
             }
         }
     }
@@ -101,6 +115,10 @@ internal class SWRState<T>: ObservableObject {
 
     deinit {
         stopTimer();
-        Cache.shared.notification.removeObserver(self, name: .init(String(self.identifier)), object: nil)
+        // Remove listener
+        var hasher = Hasher()
+        key.hash(into: &hasher)
+        let id = hasher.finalize()
+        Cache.shared.notification.removeObserver(self, name: .init(String(id)), object: nil)
     }
 }

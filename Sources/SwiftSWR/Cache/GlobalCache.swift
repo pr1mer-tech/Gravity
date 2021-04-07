@@ -13,33 +13,37 @@ public class Cache {
     
     let notification = NotificationCenter()
     
-    struct RequestCache {
-        let timestamp: TimeInterval
-        let data: Data
-    }
-    
-    var cache: [Int: RequestCache] = [:]
+    var cache: [Int: Data] = [:]
     var onGoing = [Int]()
-    var queued: [Int: [(Data?, URLResponse?, Error?) -> Void]] = [:]
+    var queued: [Int: [(Data?, Error?) -> Void]] = [:]
     
     enum CacheError: Error {
         case invalidKey
     }
-    
-    func get(key: Int) throws -> RequestCache {
+    /// Read from the cache
+    func get<Key>(for location: Key) throws -> Data where Key: Hashable {
+        // Hasher
+        var hasher = Hasher()
+        location.hash(into: &hasher)
+        let key = hasher.finalize()
+        
         guard let entry = cache[key] else { throw CacheError.invalidKey }
         return entry
     }
-    
-    func set(key: Int, value: Data) {
-        let now = Date().timeIntervalSinceReferenceDate
-        cache[key] = RequestCache(timestamp: now, data: value)
-    }
-    
-    public func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask? {
+    /// Write to the cache
+    func set<Key>(for location: Key, value: Data) where Key: Hashable {
         // Hasher
         var hasher = Hasher()
-        url.hash(into: &hasher)
+        location.hash(into: &hasher)
+        let key = hasher.finalize()
+        
+        cache[key] = value
+    }
+    /// Fetch and store data in the cache
+    public func getFromCache<Key, Value>(location: Key, using fetcher: Fetcher<Key, Value>, completionHandler: @escaping (Data?, Error?) -> Void) {
+        // Hasher
+        var hasher = Hasher()
+        location.hash(into: &hasher)
         let key = hasher.finalize()
         
         if onGoing.contains(key) {
@@ -48,37 +52,32 @@ public class Cache {
             } else {
                 queued[key] = [completionHandler]
             }
-            return nil
+            return
         }
-        // URLTask
-        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
-            self.onGoing.removeAll { $0 == key } // Finish on going data task
-            
-            if let value = data {
-                self.set(key: key, value: value)
+        
+        // Register task
+        self.onGoing.append(key)
+        // Start task
+        do {
+            try fetcher.fetch(location: location) { (data, error) in
+                self.onGoing.removeAll { $0 == key } // Finish on going data task
+                
+                if let value = data {
+                    self.set(for: location, value: value)
+                }
+                // Pass to callback
+                completionHandler(data, error)
+                // Pass to other callbacks
+                self.queued[key]?.forEach { $0(data, error) }
+                self.queued.removeValue(forKey: key)
             }
+        } catch {
+            self.onGoing.removeAll { $0 == key } // Finish on going data task
             // Pass to callback
-            completionHandler(data, response, error)
+            completionHandler(nil, error)
             // Pass to other callbacks
-            self.queued[key]?.forEach { $0(data, response, error) }
+            self.queued[key]?.forEach { $0(nil, error) }
             self.queued.removeValue(forKey: key)
         }
-        
-        // Check cache
-        let now = Date().timeIntervalSinceReferenceDate // Get TimeStamp
-        guard let entry = try? get(key: key) else {
-            self.onGoing.append(key)
-            return task
-        }
-        let then = entry.timestamp
-        guard now - then < 1 else {
-            self.onGoing.append(key)
-            return task
-        }
-        
-        // Return from cache
-        completionHandler(entry.data, nil, nil)
-        
-        return nil
     }
 }

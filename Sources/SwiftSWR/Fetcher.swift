@@ -8,63 +8,46 @@
 import Foundation
 
 /// General Fetcher type
-public typealias Fetcher<T> = (_ callback: @escaping (StateResponse<T>) -> Void) -> Void
-
-/// Fetch Data from URL
-public func FetcherURL(url: URL) -> Fetcher<Data> {
-    return { callback in
-        let task = Cache.shared.dataTask(with: url) { (data, response, error) in
-            guard let data = data else {
-                callback(StateResponse(error: error ?? URLError(.unknown)))
-                return
-            }
-            
-            callback(StateResponse(data: data, error: error))
-        }
-        
-        task?.resume()
+public class Fetcher<Fetchable, Decoded> where Fetchable: Hashable {
+    /// Implement decode function to convert data to any type
+    public func decode(data: Data) throws -> Decoded {
+        throw SWRError.DecodeError
+    }
+    /// Implement fetch function to fetch from the network
+    public func fetch(location: Fetchable, callback: @escaping (Data?, Error?) -> Void) throws {
+        throw SWRError.FetchError
     }
 }
 
 /// Fetch and serialize JSON from URL
-public func FetcherJSON(url: URL) -> Fetcher<[String: Any]> {
-    return { callback in
-        let task = Cache.shared.dataTask(with: url) { (data, response, error) in
-            guard let data = data else {
-                callback(StateResponse(error: error ?? URLError(.unknown)))
-                return
-            }
-            do {
-                guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-                    callback(StateResponse(error: URLError(.cannotDecodeContentData)))
-                    return
-                }
-                callback(StateResponse(data: json, error: error))
-            } catch {
-                callback(StateResponse(error: error))
-            }
+public class FetcherJSON: Fetcher<URL, [String: Any]> {
+    public override func decode(data: Data) throws -> [String : Any] {
+        let json = try JSONSerialization.jsonObject(with: data, options: [])
+        guard let dictionary = json as? [String: Any] else { throw SWRError.DecodeError }
+        return dictionary
+    }
+    
+    public override func fetch(location url: URL, callback: @escaping (Data?, Error?) -> Void) throws {
+        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+            callback(data, error)
         }
         
-        task?.resume()
+        task.resume()
     }
 }
 
-/// Fetch and decode JSON from URL
-public func FetcherDecodeJSON<Object>(url: URL, type jsonType: Object.Type) -> Fetcher<Object> where Object: Decodable {
-    return { callback in
-        let task = Cache.shared.dataTask(with: url) { (data, response, error) in
-            guard let data = data else {
-                callback(StateResponse(error: error ?? URLError(.unknown)))
-                return
-            }
-            do {
-                let json = try JSONDecoder().decode(jsonType, from: data)
-                callback(StateResponse(data: json, error: error))
-            } catch {
-                callback(StateResponse(error: error))
-            }
+/// Fetch and serialize JSON from URL
+public class FetcherDecodeJSON<Object>: Fetcher<URL, Object> where Object: Decodable {
+    public override func decode(data: Data) throws -> Object {
+        let json = try JSONDecoder().decode(Object.self, from: data)
+        return json
+    }
+    
+    public override func fetch(location url: URL, callback: @escaping (Data?, Error?) -> Void) throws {
+        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+            callback(data, error)
         }
         
-        task?.resume()
+        task.resume()
     }
 }

@@ -1,68 +1,45 @@
 import SwiftUI
 
 @propertyWrapper
-public struct SWR<Value> : DynamicProperty {
-    @ObservedObject var controller: SWRState<Value>
-    /// Unique identifier for this SWR request.
-    ///
-    /// SWR requests with the same URL or Hashable key, will end up with the same identifier
-    ///
-    public var identifier: Int
+public struct SWR<Key, Value> : DynamicProperty where Key: Hashable {
+    @ObservedObject var controller: SWRState<Key, Value>
     
     // Initialize with value
-    public init<T>(wrappedValue value: Value, key: T, fetcher: @escaping Fetcher<Value>, options: SWROptions = .init()) where T: Hashable {
-        // Hasher
-        var hasher = Hasher()
-        key.hash(into: &hasher)
-        self.identifier = hasher.finalize()
-        
-        let row = SWRStateObject<Value>(cachedResponse: StateResponse<Value>(id: self.identifier, data: value),
-                                   fetcher: fetcher)
-        
-        controller = SWRState(id: self.identifier, initialData: row)
+    public init(wrappedValue value: Value, key: Key, fetcher: Fetcher<Key, Value>, options: SWROptions = .init()) {
+        controller = SWRState(key: key, fetcher: fetcher, data: value)
         
         controller.revalidate(force: false)
         // Refresh
         controller.setupRefresh(options)
     }
     // Initialize without value
-    public init<T>(key: T, fetcher: @escaping Fetcher<Value>, options: SWROptions = .init()) where T: Hashable {
-        // Hasher
-        var hasher = Hasher()
-        key.hash(into: &hasher)
-        self.identifier = hasher.finalize()
-        
-        let row = SWRStateObject<Value>(cachedResponse: StateResponse<Value>(id: self.identifier),
-                                   fetcher: fetcher)
-        
-        controller = SWRState(id: self.identifier, initialData: row)
+    public init(key: Key, fetcher: Fetcher<Key, Value>, options: SWROptions = .init()) {
+        controller = SWRState(key: key, fetcher: fetcher)
         
         controller.revalidate(force: false)
         // Refresh
         controller.setupRefresh(options)
     }
     
-    public var wrappedValue: StateResponse<Value> {
+    public var wrappedValue: StateResponse<Key, Value> {
         get {
             return controller.get
         }
         nonmutating set {
-            controller.set(value: newValue)
+            controller.set(data: newValue.data, error: newValue.error)
         }
     }
 }
 /// Other inits
-public extension SWR {
+public extension SWR where Key == URL {
     /// JSON Decoder init
     init(wrappedValue value: Value, url: String, options: SWROptions = .init()) where Value: Decodable {
         guard let uri = URL(string: url) else { fatalError("[SwiftSWR] Invalid URL: \(url)") }
-        let fetcher = FetcherDecodeJSON(url: uri, type: Value.self)
-        self.init(wrappedValue: value, key: url, fetcher: fetcher, options: options)
+        self.init(wrappedValue: value, key: uri, fetcher: FetcherDecodeJSON(), options: options)
     }
     /// JSON Decoder init
     init(url: String, options: SWROptions = .init()) where Value: Decodable {
         guard let uri = URL(string: url) else { fatalError("[SwiftSWR] Invalid URL: \(url)") }
-        let fetcher = FetcherDecodeJSON(url: uri, type: Value.self)
-        self.init(key: url, fetcher: fetcher, options: options)
+        self.init(key: uri, fetcher: FetcherDecodeJSON(), options: options)
     }
 }

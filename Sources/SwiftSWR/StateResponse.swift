@@ -8,7 +8,7 @@
 import SwiftUI
 
 @available(OSX 10.15, *)
-public class StateResponse<Value>: ObservableObject {
+public class StateResponse<Key, Value>: ObservableObject where Key: Hashable {
     public var awaiting: Bool {
         return data == nil
     }
@@ -16,17 +16,21 @@ public class StateResponse<Value>: ObservableObject {
     @Published public var error: Error? = nil
     @Published public var data: Value? = nil
     
-    internal let identifier: Int?
+    internal let identifier: Key
     
     /// Create StateResponse
-    init(id: Int? = nil, data: Value? = nil, error: Error? = nil) {
+    init(key: Key, data: Value? = nil, error: Error? = nil) {
         self.data = data
         self.error = error
-        self.identifier = id
+        self.identifier = key
     }
     /// Revalidate current SWR
     public func revalidate(mutated: Value? = nil, makeRequest: Bool = true) {
-        guard let id = identifier else { return }
+        // Hasher
+        var hasher = Hasher()
+        self.identifier.hash(into: &hasher)
+        let id = hasher.finalize()
+        
         var dictionary: [String: Any] = [
             "makeRequest": makeRequest
         ]
@@ -41,4 +45,8 @@ public class StateResponse<Value>: ObservableObject {
 enum SWRError: LocalizedError {
     /// SWR couldn't retreive data from cache
     case CacheError
+    /// SWR couldn't decode data
+    case DecodeError
+    /// SWR couldn't fetch data
+    case FetchError
 }
