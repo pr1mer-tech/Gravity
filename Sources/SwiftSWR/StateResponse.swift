@@ -47,6 +47,8 @@ enum SWRError: LocalizedError {
     case CacheError
     /// SWR couldn't decode data
     case DecodeError
+    /// SWR couldn't encode data
+    case EncodeError
     /// SWR couldn't fetch data
     case FetchError
 }

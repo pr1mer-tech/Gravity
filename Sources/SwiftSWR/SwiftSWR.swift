@@ -33,12 +33,12 @@ public struct SWR<Key, Value> : DynamicProperty where Key: Hashable {
 /// Other inits
 public extension SWR where Key == URL {
     /// JSON Decoder init
-    init(wrappedValue value: Value, url: String, options: SWROptions = .init()) where Value: Decodable {
+    init(wrappedValue value: Value, url: String, options: SWROptions = .init()) where Value: Codable {
         guard let uri = URL(string: url) else { fatalError("[SwiftSWR] Invalid URL: \(url)") }
         self.init(wrappedValue: value, key: uri, fetcher: FetcherDecodeJSON(), options: options)
     }
     /// JSON Decoder init
-    init(url: String, options: SWROptions = .init()) where Value: Decodable {
+    init(url: String, options: SWROptions = .init()) where Value: Codable {
         guard let uri = URL(string: url) else { fatalError("[SwiftSWR] Invalid URL: \(url)") }
         self.init(key: uri, fetcher: FetcherDecodeJSON(), options: options)
     }

@@ -40,7 +40,7 @@ public class Cache {
         cache[key] = value
     }
     /// Fetch and store data in the cache
-    public func getFromCache<Key, Value>(location: Key, using fetcher: Fetcher<Key, Value>, completionHandler: @escaping (Data?, Error?) -> Void) {
+    public func request<Key, Value>(from location: Key, using fetcher: Fetcher<Key, Value>, completionHandler: @escaping (Data?, Error?) -> Void) {
         // Hasher
         var hasher = Hasher()
         location.hash(into: &hasher)

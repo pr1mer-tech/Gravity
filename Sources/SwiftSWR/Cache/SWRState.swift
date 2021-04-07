@@ -50,6 +50,9 @@ internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
         guard let mutated = userInfos["mutated"] as? Value else { return }
         DispatchQueue.main.async {
             self.set(data: mutated)
+            // Encode and store to cache
+            guard let data = try? self.fetcher.encode(object: mutated) else { return }
+            Cache.shared.set(for: self.key, value: data)
         }
     }
     
@@ -63,7 +66,7 @@ internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
             }
             return
         }
-        Cache.shared.getFromCache(location: key, using: fetcher) { (data, error) in
+        Cache.shared.request(from: key, using: fetcher) { (data, error) in
             DispatchQueue.main.async {
                 do {
                     guard let data = data else {
