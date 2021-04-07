@@ -87,7 +87,7 @@ internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
         startTimer(delay: options.refreshInterval)
         
         // Just in case there was another queue
-        monitor.cancel()
+        guard monitor.pathUpdateHandler == nil else { return }
         let queue = DispatchQueue(label: "Monitor")
         monitor.start(queue: queue)
         monitor.pathUpdateHandler = { path in
