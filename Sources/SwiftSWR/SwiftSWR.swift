@@ -5,7 +5,7 @@ public struct SWR<Key, Value> : DynamicProperty where Key: Hashable {
     @ObservedObject var controller: SWRState<Key, Value>
     
     // Initialize with value
-    public init(wrappedValue value: Value, key: Key, fetcher: Fetcher<Key, Value>, options: SWROptions = .init()) {
+    public init(wrappedValue value: Value, key: Key, fetcher: Fetcher<Key, Value>, options: SWROptions = .default) {
         controller = SWRState(key: key, fetcher: fetcher, data: value)
         
         controller.revalidate(force: false)
@@ -13,7 +13,7 @@ public struct SWR<Key, Value> : DynamicProperty where Key: Hashable {
         controller.setupRefresh(options)
     }
     // Initialize without value
-    public init(key: Key, fetcher: Fetcher<Key, Value>, options: SWROptions = .init()) {
+    public init(key: Key, fetcher: Fetcher<Key, Value>, options: SWROptions = .default) {
         controller = SWRState(key: key, fetcher: fetcher)
         
         controller.revalidate(force: false)

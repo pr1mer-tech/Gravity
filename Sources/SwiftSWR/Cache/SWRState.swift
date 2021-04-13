@@ -84,7 +84,9 @@ internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
     
     // MARK: Refresh
     func setupRefresh(_ options: SWROptions) {
-        startTimer(delay: options.refreshInterval)
+        if options.contains(.autoRefresh) {
+            startTimer(delay: 15)
+        }
         
         // Just in case there was another queue
         guard monitor.pathUpdateHandler == nil else { return }
@@ -93,10 +95,10 @@ internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
         monitor.pathUpdateHandler = { path in
             if path.isExpensive {
                 self.stopTimer()
-            } else {
-                self.startTimer(delay: options.refreshInterval)
+            } else if options.contains(.autoRefresh) {
+                self.startTimer(delay: 15)
             }
-            if path.status == .satisfied && options.revalidateOnReconnect {
+            if path.status == .satisfied && options.contains(.revalidateOnReconnect) {
                 self.revalidate()
             }
         }
