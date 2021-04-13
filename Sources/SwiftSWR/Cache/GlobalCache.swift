@@ -57,6 +57,7 @@ public class Cache {
         let then = cache[key]?.timestamp
         if then != nil && now - then! <= 1 {
             completionHandler(cache[key]?.data, nil)
+            return
         }
         
         if onGoing.contains(key) {

@@ -43,8 +43,6 @@ public class StateResponse<Key, Value>: ObservableObject where Key: Hashable {
 }
 
 enum SWRError: LocalizedError {
-    /// SWR couldn't retreive data from cache
-    case CacheError
     /// SWR couldn't decode data
     case DecodeError
     /// SWR couldn't encode data
