@@ -8,7 +8,9 @@
 import Combine
 import Foundation
 import Network
+#if canImport(AppKit)
 import AppKit
+#endif
 
 internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
     weak var timer: Timer?
@@ -105,11 +107,13 @@ internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
         }
         
         // Revalidate on focus
+        #if canImport(AppKit)
         NotificationCenter.default.addObserver(forName: NSApplication.didChangeOcclusionStateNotification, object: nil, queue: nil) { (notification) in
             guard NSApp.occlusionState.contains(.visible) else { return }
             guard options.contains(.revalidateOnFocus) else { return }
             self.revalidate()
         }
+        #endif
     }
     
     func startTimer(delay: TimeInterval = 15) {
