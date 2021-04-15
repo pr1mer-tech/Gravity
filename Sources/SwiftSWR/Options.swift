@@ -27,6 +27,8 @@ public struct SWROptions: OptionSet {
     ///
     public static let revalidateOnReconnect = SWROptions(rawValue: 1 << 1)
     
-    
-    public static let `default`: SWROptions = [.revalidateOnReconnect]
+    /// When you re-focus the app or switch between tabs, SWR automatically revalidates data.
+    public static let revalidateOnFocus = SWROptions(rawValue: 1 << 2)
+    /// Default configuration
+    public static let `default`: SWROptions = [.revalidateOnReconnect, .revalidateOnFocus]
 }

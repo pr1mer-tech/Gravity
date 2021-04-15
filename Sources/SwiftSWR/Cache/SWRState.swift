@@ -8,6 +8,7 @@
 import Combine
 import Foundation
 import Network
+import AppKit
 
 internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
     weak var timer: Timer?
@@ -101,6 +102,13 @@ internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
             if path.status == .satisfied && options.contains(.revalidateOnReconnect) {
                 self.revalidate()
             }
+        }
+        
+        // Revalidate on focus
+        NotificationCenter.default.addObserver(forName: NSApplication.didChangeOcclusionStateNotification, object: nil, queue: nil) { (notification) in
+            guard NSApp.occlusionState.contains(.visible) else { return }
+            guard options.contains(.revalidateOnFocus) else { return }
+            self.revalidate()
         }
     }
     
