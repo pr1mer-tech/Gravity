@@ -1,0 +1,23 @@
+import Callout from 'nextra-theme-docs/callout'
+
+# API Options
+Constructors:
+```swift
+// Simple JSON Object decoder
+@SWR<URL, Model>(url: "https://example.org/api/endpoint", model: Model) // Where Model can be any Codable struct.
+// Raw Init - You should use this only if you want to have a custom workflow
+@SWR<Key, Value>(key: Key, fetcher: Fetcher<Key, Value>, options: SWROptions = .default) // Where Key is a hashable that can represent the query and Value is the returned object.
+```
+
+## Return Values
+You'll receive a `StateResponse<Key, Value>` object that has the following properties:
+- `data: Value?`: data for the given key resolved by fetcher (or `nil` if not loaded)
+- `error: Error?`: error thrown by fetcher (or `nil`)
+- `awaiting: Bool`: is the request still happening?
+- `revalidate(mutated: Value? = nil, makeRequest: Bool = true)`: function to mutate the cached data
+## Options
+- `autoRefresh = false`: auto revalidate data every 15 seconds [(details)](/docs/revalidation)
+- `revalidateOnFocus = true`: auto revalidate when window gets focused [(details)](/docs/revalidation)
+- `revalidateOnReconnect = true`: automatically revalidate when the user regains a network connection [(details)](/docs/revalidation)
+- `refreshWhenHidden = false`: polling when the window is invisible (if `refreshInterval` is enabled)
+- `refreshWhenOffline = false`: polling when the user is offline

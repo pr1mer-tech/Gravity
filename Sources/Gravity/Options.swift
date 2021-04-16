@@ -29,6 +29,12 @@ public struct SWROptions: OptionSet {
     
     /// When you re-focus the app or switch between tabs, SWR automatically revalidates data.
     public static let revalidateOnFocus = SWROptions(rawValue: 1 << 2)
+    
+    /// polling when the window is invisible (if `refreshInterval` is enabled)
+    public static let refreshWhenHidden = SWROptions(rawValue: 1 << 3)
+    /// polling when the user is offline
+    public static let refreshWhenOffline = SWROptions(rawValue: 1 << 4)
+    
     /// Default configuration
     public static let `default`: SWROptions = [.revalidateOnReconnect, .revalidateOnFocus]
 }

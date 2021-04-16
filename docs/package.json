@@ -1,0 +1,22 @@
+{
+  "name": "docs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Arthur Guiot",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^10.0.3",
+    "nextra": "^0.3.2",
+    "nextra-theme-docs": "^1.0.2",
+    "prism-react-renderer": "^1.2.0",
+    "prismjs": "^1.23.0",
+    "react": "16",
+    "react-dom": "16",
+    "sass": "^1.32.8"
+  }
+}
