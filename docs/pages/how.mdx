@@ -1,0 +1,19 @@
+# How it works
+
+Gravity provides critical functionality in all kinds of SwiftUI apps, so **performance** is a top priority. 
+
+Gravity’s built-in **caching** and **[deduplication](/how#deduplication)** skips unnecessary network requests, but 
+the performance of the `SWR` hook itself still matters. In a complex app, there could be hundreds of `SWR` calls in a single page render.
+
+Gravity ensures that your app has:
+- _no unnecessary requests_
+- _no unnecessary re-renders_
+- _no unnecessary data revalidation_
+
+without any code changes from you.
+
+<img src="/schema.jpg" />
+
+## Deduplication
+
+It’s very common to reuse Gravity hooks in your app. For example, an app that renders the current user’s avatar 5 time. Each `Avatar` view has a `SWR` hook inside. Since they have the same key and are rendered at the almost same time, **only 1 network request will be made**.
