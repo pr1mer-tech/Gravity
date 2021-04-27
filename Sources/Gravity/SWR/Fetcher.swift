@@ -11,15 +11,15 @@ import Foundation
 public class Fetcher<Fetchable, Decoded> where Fetchable: Hashable {
     /// Implement encode function to convert Decoded type to Data
     public func encode(object: Decoded) throws -> Data {
-        throw SWRError.EncodeError
+        throw GravityError.EncodeError
     }
     /// Implement decode function to convert data to any type
     public func decode(data: Data) throws -> Decoded {
-        throw SWRError.DecodeError
+        throw GravityError.DecodeError
     }
     /// Implement fetch function to fetch from the network
     public func fetch(location: Fetchable, callback: @escaping (Data?, Error?) -> Void) throws {
-        throw SWRError.FetchError
+        throw GravityError.FetchError
     }
 }
 
@@ -32,7 +32,7 @@ public class FetcherJSON: Fetcher<URL, [String: Any]> {
     
     public override func decode(data: Data) throws -> [String : Any] {
         let json = try JSONSerialization.jsonObject(with: data, options: [])
-        guard let dictionary = json as? [String: Any] else { throw SWRError.DecodeError }
+        guard let dictionary = json as? [String: Any] else { throw GravityError.DecodeError }
         return dictionary
     }
     
