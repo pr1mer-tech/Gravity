@@ -21,7 +21,7 @@ public struct GravityStream<Value> : DynamicProperty {
         
         self.uri = uri
         
-        if controller.key != nil {
+        if controller.key == nil {
             controller.connect(key: uri, processor: processor, data: value)
         }
     }
@@ -31,7 +31,7 @@ public struct GravityStream<Value> : DynamicProperty {
         
         self.uri = uri
         
-        if controller.key != nil {
+        if controller.key == nil {
             controller.connect(key: uri, processor: processor)
         }
     }
