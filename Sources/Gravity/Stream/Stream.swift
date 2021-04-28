@@ -13,9 +13,13 @@ import Starscream
 public struct GravityStream<Value> : DynamicProperty {
     @StateObject var controller = StreamState<Value>()
     
+    let uri: URL
+    
     // Initialize with value
     public init(wrappedValue value: Value, url: String, processor: Streamable<Value>, options: SWROptions = .default) {
         guard let uri = URL(string: url) else { fatalError("[Gravity Stream] Invalid URL: \(url)") }
+        
+        self.uri = uri
         
         if controller.key != nil {
             controller.connect(key: uri, processor: processor, data: value)
@@ -25,6 +29,8 @@ public struct GravityStream<Value> : DynamicProperty {
     public init(url: String, processor: Streamable<Value>, options: SWROptions = .default) {
         guard let uri = URL(string: url) else { fatalError("[Gravity Stream] Invalid URL: \(url)") }
         
+        self.uri = uri
+        
         if controller.key != nil {
             controller.connect(key: uri, processor: processor)
         }
@@ -32,7 +38,7 @@ public struct GravityStream<Value> : DynamicProperty {
     
     public var wrappedValue: StateResponse<URL, Value> {
         get {
-            return controller.object!
+            return controller.object ?? StateResponse(key: self.uri)
         }
         nonmutating set {
             controller.object = newValue
