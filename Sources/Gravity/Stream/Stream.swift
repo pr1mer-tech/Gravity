@@ -9,7 +9,7 @@ import SwiftUI
 import Starscream
 
 @propertyWrapper
-public struct Stream<Value> : DynamicProperty {
+public struct GravityStream<Value> : DynamicProperty {
     @StateObject var controller = StreamState<Value>()
     
     // Initialize with value
