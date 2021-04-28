@@ -8,11 +8,11 @@
 import Foundation
 
 open class Streamable<Value> {
-    public func encode(value: Value) throws -> Data {
+    open func encode(value: Value) throws -> Data {
         throw GravityError.EncodeError
     }
     
-    public func decode(message: Data) throws -> Value {
+    open func decode(message: Data) throws -> Value {
         throw GravityError.DecodeError
     }
 }
