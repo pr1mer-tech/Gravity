@@ -50,5 +50,6 @@ internal class StreamState<Value>: ObservableObject {
         if let error = userInfos["error"] as? Error {
             object?.error = error
         }
+        self.object?.objectWillChange.send() // Updates current View
     }
 }
