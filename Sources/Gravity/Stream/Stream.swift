@@ -46,11 +46,11 @@ public struct GravityStream<Value> : DynamicProperty {
         
         StreamCache.shared.notification.addObserver(forName: .init(String(hash)), object: nil, queue: .main) { _ in
             // Update state
-            self.update()
+            self.updateState()
         }
     }
     
-    public func update() {
+    public func updateState() {
         do {
             let connector = try StreamCache.shared.get(for: self.uri)
             self.error = connector.error
