@@ -14,15 +14,15 @@ public class StreamCache {
     let notification = NotificationCenter()
     
     internal class Connector: WebSocketDelegate {
-        init(onMessage: @escaping (Data) -> Void, onError: @escaping (Error?) -> Void) {
-            self.onMessage = onMessage
-            self.onError = onError
+        let key: Int
+        init(key: Int) {
+            self.key = key
         }
         
         var socket: WebSocketClient? = nil
-
-        var onMessage: (Data) -> Void
-        var onError: (Error?) -> Void
+        
+        var data: Data? = nil
+        var error: Error? = nil
         
         func websocketDidConnect(socket: WebSocketClient) {
             self.socket = socket
@@ -30,54 +30,57 @@ public class StreamCache {
         
         func websocketDidDisconnect(socket: WebSocketClient, error: Error?) {
             self.socket = socket
-            onError(error)
+            self.error = error
+            StreamCache.shared.notification.post(name: .init(String(key)), object: nil, userInfo: nil)
         }
         
         func websocketDidReceiveMessage(socket: WebSocketClient, text: String) {
             self.socket = socket
             guard let data = text.data(using: .utf8) else { return }
-            onMessage(data)
+            self.data = data
+            StreamCache.shared.notification.post(name: .init(String(key)), object: nil, userInfo: nil)
         }
         
         func websocketDidReceiveData(socket: WebSocketClient, data: Data) {
             self.socket = socket
-            onMessage(data)
+            self.data = data
+            StreamCache.shared.notification.post(name: .init(String(key)), object: nil, userInfo: nil)
         }
     }
     
-    var cache: [Int: Connector] = [:]
+    var connectors: [Int: Connector] = [:]
 
-    
     func connect(key: URL) {
         // Hasher
         var hasher = Hasher()
         key.hash(into: &hasher)
         let hash = hasher.finalize()
         
-        guard cache[hash] == nil else { return }
+        guard connectors[hash] == nil else { return }
         
         var request = URLRequest(url: key)
         request.timeoutInterval = 5
-        let connector = Connector(onMessage: { (data) in
-            self.notification.post(name: .init(String(hash)),
-                                   object: nil,
-                                   userInfo: [
-                                    "data": data
-                                   ]
-            )
-        }, onError: { (error) in
-            self.notification.post(name: .init(String(hash)),
-                                   object: nil,
-                                   userInfo: [
-                                    "error": error ?? GravityError.FetchError
-                                   ]
-            )
-        })
+        let connector = Connector(key: hash)
         
         connector.socket = WebSocket(request: request)
         connector.socket?.delegate = connector
         connector.socket?.connect()
         
-        cache[hash] = connector
+        connectors[hash] = connector
+    }
+    
+    enum CacheError: Error {
+        case invalidKey
+    }
+    
+    /// Retrieve connector
+    func get(for location: URL) throws -> Connector {
+        // Hasher
+        var hasher = Hasher()
+        location.hash(into: &hasher)
+        let key = hasher.finalize()
+        
+        guard let entry = connectors[key] else { throw CacheError.invalidKey }
+        return entry
     }
 }
