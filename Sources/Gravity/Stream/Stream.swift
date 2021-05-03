@@ -13,8 +13,12 @@ import Starscream
 public struct GravityStream<Value> : DynamicProperty {
     let uri: URL
     let processor: Streamable<Value>
-    @State var value: Value? = nil
-    @State var error: Error? = nil
+    
+    class ContainerObject: ObservableObject {
+        @Published var value: Value? = nil
+        @Published var error: Error? = nil
+    }
+    @ObservedObject var container = ContainerObject()
     
     // Initialize with value
     public init(wrappedValue value: Value, url: String, processor: Streamable<Value>, options: SWROptions = .default) {
@@ -22,7 +26,7 @@ public struct GravityStream<Value> : DynamicProperty {
         
         self.uri = uri
         self.processor = processor
-        self.value = value
+        self.container.value = value
         
         self.connect()
     }
@@ -55,18 +59,18 @@ public struct GravityStream<Value> : DynamicProperty {
     public func updateState() {
         do {
             let connector = try StreamCache.shared.get(for: self.uri)
-            self.error = connector.error
+            self.container.error = connector.error
             
             guard let message = connector.data else { return }
-            self.value = try processor.decode(message: message)
+            self.container.value = try processor.decode(message: message)
         } catch let err {
-            self.error = err
+            self.container.error = err
         }
     }
     
     public var wrappedValue: StateResponse<URL, Value> {
         get {
-            return StateResponse(key: self.uri, data: self.value, error: self.error)
+            return StateResponse(key: self.uri, data: self.container.value, error: self.container.error)
         }
         nonmutating set {
             // Send request to WS server
