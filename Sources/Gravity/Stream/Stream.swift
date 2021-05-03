@@ -48,6 +48,8 @@ public struct GravityStream<Value> : DynamicProperty {
             // Update state
             self.updateState()
         }
+        // Update state
+        self.updateState()
     }
     
     public func updateState() {
