@@ -10,7 +10,7 @@ import Foundation
 import Network
 import Starscream
 
-internal class StreamState<Value>: ObservableObject, WebSocketDelegate {
+internal class StreamState<Value>: ObservableObject {
     let monitor = NWPathMonitor()
     
     var processor: Streamable<Value>? = nil
@@ -26,42 +26,29 @@ internal class StreamState<Value>: ObservableObject, WebSocketDelegate {
 
         object = StateResponse(key: key, data: data)
         
-        var request = URLRequest(url: key)
-        request.timeoutInterval = 5
-        self.socket = WebSocket(request: request)
-        self.socket?.delegate = self
-        self.socket?.connect()
+        StreamCache.shared.connect(key: key)
+        // Add listeners
+        var hasher = Hasher()
+        key.hash(into: &hasher)
+        let hash = hasher.finalize()
+        
+        StreamCache.shared.notification.addObserver(self, selector: #selector(update(_:)), name: .init(String(hash)), object: nil)
     }
     
-    var socket: WebSocketClient? = nil
-
-    func websocketDidConnect(socket: WebSocketClient) {
-        self.socket = socket
-    }
-    
-    func websocketDidDisconnect(socket: WebSocketClient, error: Error?) {
-        self.socket = socket
-        self.object?.error = error
-    }
-    
-    func websocketDidReceiveMessage(socket: WebSocketClient, text: String) {
-        self.socket = socket
-        guard let data = text.data(using: .utf8) else { return }
-        do {
-            let value = try processor!.decode(message: data)
-            self.object?.data = value
-        } catch {
-            self.object?.error = error
+    @objc func update(_ notification: Notification) {
+        guard let userInfos = notification.userInfo as? [String: Any] else { return }
+        if let data = userInfos["data"] as? Data {
+            guard let processor = self.processor else { return }
+            do {
+                let value = try processor.decode(message: data)
+                object?.data = value
+                object?.error = nil
+            } catch {
+                object?.error = error
+            }
         }
-    }
-    
-    func websocketDidReceiveData(socket: WebSocketClient, data: Data) {
-        self.socket = socket
-        do {
-            let value = try processor!.decode(message: data)
-            self.object?.data = value
-        } catch {
-            self.object?.error = error
+        if let error = userInfos["error"] as? Error {
+            object?.error = error
         }
     }
 }

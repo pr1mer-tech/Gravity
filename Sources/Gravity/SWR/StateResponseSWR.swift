@@ -22,7 +22,7 @@ public extension StateResponse {
         if mutated != nil {
             dictionary["mutated"] = mutated!
         }
-        Cache.shared.notification.post(name: .init(String(id)), object: nil, userInfo: dictionary)
+        SWRCache.shared.notification.post(name: .init(String(id)), object: nil, userInfo: dictionary)
     }
 }
 
