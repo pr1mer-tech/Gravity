@@ -4,7 +4,7 @@ import Callout from 'nextra-theme-docs/callout'
 Constructors:
 ```swift
 // Simple JSON Object decoder
-@SWR<URL, Model>(url: "https://example.org/api/endpoint", model: Model) // Where Model can be any Codable struct.
+@SWR<URL, Model>(url: "https://example.org/api/endpoint", options: SWROptions = .default) // Where Model can be any Codable struct.
 // Raw Init - You should use this only if you want to have a custom workflow
 @SWR<Key, Value>(key: Key, fetcher: Fetcher<Key, Value>, options: SWROptions = .default) // Where Key is a hashable that can represent the query and Value is the returned object.
 ```
