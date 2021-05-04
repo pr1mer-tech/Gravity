@@ -1,9 +1,4 @@
-import Callout from 'nextra-theme-docs/callout'
-import Link from 'next/link'
-
-# Getting Started
-
-## Installation
+# Installation
 
 The [Swift Package Manager](https://swift.org/package-manager/) is a tool for automating the distribution of Swift code and is integrated into the `swift` compiler.
 
@@ -16,43 +11,3 @@ dependencies: [
     .package(url: "https://github.com/pr1mer-tech/Gravity.git", .upToNextMajor(from: "0.1.0"))
 ]
 ```
-
-## Quick Start
-
-For normal RESTful APIs with JSON data, first you need to create a model structure, which represents the expected result:
-
-```swift
-struct Landmark: Hashable, Codable {
-    var id: Int
-    var name: String
-    var park: String
-    var state: String
-    var description: String
-}
-```
-
-<Callout emoji="💡">
-  If you want to process the data manually or have a different type of API, you can create your own fetcher function. 
-  Check <Link href="/docs/data-fetching"><a href="/docs/data-fetching">here</a></Link> for more examples.
-</Callout>
-
-Then you can import Gravity and start using it inside any view components:
-
-```swift
-import SwiftUI
-import Gravity
-
-struct LandmarkList: View {
-    @SWR(url: "https://example.org/api/endpoint", model: Landmark) var api
-    var body: some View {
-        if let landmarks = api.data {
-            List(landmarks, id: \.id) { landmark in
-                LandmarkRow(landmark: landmark)
-            }
-        }
-    }
-}
-```
-
-Normally, there're 3 possible states of a request: "loading", "ready", or "error". You can use the value of `data` and `error` to
-determine the current state of the request, and return the corresponding UI.

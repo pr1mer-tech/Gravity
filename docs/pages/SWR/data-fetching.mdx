@@ -1,0 +1,36 @@
+import Callout from 'nextra-theme-docs/callout'
+
+# Fetching the data
+When using SWR, Gravity will cache your data and update your views, but you'll need to fetch & convert that `Data` into useful objects. Sometimes, Gravity can do that automatically for you if this `Data` can be represented as JSON. But otherwise, you'll be asked to provide a system to fetch and decode data.
+
+<Callout emoji="💡">
+  To fetch and process the data, you'll need to provide a fetcher object.
+</Callout>
+
+## Creating a fetcher
+The first thing you'll want is to subclass `Fetcher`, the class that defines the shared behavior that is common to all data fetchers. Make sure to define all the types of your object when subclassing `Fetcher`. In this example, we'll create a very basic data fetching that receives data from a URL and convert it as a plain `String`:
+
+```swift
+public class FetcherDecodeString: Fetcher<URL, String> {
+    public override func encode(object: String) throws -> Data {
+        return object.data(using: .utf8)!
+    }
+    public override func decode(data: Data) throws -> String {
+        return String(data: data, encoding: .utf8) ?? "None"
+    }
+    
+    public override func fetch(location url: URL, callback: @escaping (Data?, Error?) -> Void) throws {
+        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+            callback(data, error)
+        }
+        
+        task.resume()
+    }
+}
+```
+
+## Using the data processor
+Once we've defined our data processor, we can use it simply by passing an instance as an argument in the `GravityStream` property wrapper:
+```swift
+@SWR<URL, String>(key: URL(string: "https://example.org/api/endpoint")!, fetcher: FetcherDecodeString()) var api
+```

@@ -32,7 +32,7 @@ internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
         var hasher = Hasher()
         key.hash(into: &hasher)
         let id = hasher.finalize()
-        Cache.shared.notification.addObserver(self, selector: #selector(mutate(_:)), name: .init(String(id)), object: nil)
+        SWRCache.shared.notification.addObserver(self, selector: #selector(mutate(_:)), name: .init(String(id)), object: nil)
     }
     
     var get: StateResponse<Key, Value> {
@@ -55,12 +55,12 @@ internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
             self.set(data: mutated)
             // Encode and store to cache
             guard let data = try? self.fetcher.encode(object: mutated) else { return }
-            Cache.shared.set(for: self.key, value: data)
+            SWRCache.shared.set(for: self.key, value: data)
         }
     }
     
     func revalidate(force: Bool = true) {
-        if !force, let cached = try? Cache.shared.get(for: key) {
+        if !force, let cached = try? SWRCache.shared.get(for: key) {
             do {
                 let decoded = try fetcher.decode(data: cached)
                 self.set(data: decoded)
@@ -69,7 +69,7 @@ internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
             }
             return
         }
-        Cache.shared.request(from: key, using: fetcher) { (data, error) in
+        SWRCache.shared.request(from: key, using: fetcher) { (data, error) in
             DispatchQueue.main.async {
                 do {
                     guard let data = data else {
@@ -136,6 +136,6 @@ internal class SWRState<Key, Value>: ObservableObject where Key: Hashable {
         var hasher = Hasher()
         key.hash(into: &hasher)
         let id = hasher.finalize()
-        Cache.shared.notification.removeObserver(self, name: .init(String(id)), object: nil)
+        SWRCache.shared.notification.removeObserver(self, name: .init(String(id)), object: nil)
     }
 }
