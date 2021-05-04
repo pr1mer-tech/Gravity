@@ -9,7 +9,6 @@ import SwiftUI
 import Starscream
 
 @propertyWrapper
-@available(iOS 14.0, OSX 10.15, *)
 public struct GravityStream<Value> : DynamicProperty {
     let uri: URL
     let processor: Streamable<Value>
@@ -21,7 +20,7 @@ public struct GravityStream<Value> : DynamicProperty {
     @ObservedObject var container = ContainerObject()
     
     // Initialize with value
-    public init(wrappedValue value: Value, url: String, processor: Streamable<Value>, options: SWROptions = .default) {
+    public init(wrappedValue value: Value, url: String, processor: Streamable<Value>) {
         guard let uri = URL(string: url) else { fatalError("[Gravity Stream] Invalid URL: \(url)") }
         
         self.uri = uri
@@ -31,7 +30,7 @@ public struct GravityStream<Value> : DynamicProperty {
         self.connect()
     }
     // Initialize without value
-    public init(url: String, processor: Streamable<Value>, options: SWROptions = .default) {
+    public init(url: String, processor: Streamable<Value>) {
         guard let uri = URL(string: url) else { fatalError("[Gravity Stream] Invalid URL: \(url)") }
         
         self.uri = uri
@@ -82,3 +81,14 @@ public struct GravityStream<Value> : DynamicProperty {
     }
 }
 
+
+public extension GravityStream where Value: Codable {
+    /// JSON Decoder init
+    init(wrappedValue value: Value, url: String) {
+        self.init(wrappedValue: value, url: url, processor: JSONStreamProcessor<Value>())
+    }
+    /// JSON Decoder init
+    init(url: String, options: SWROptions = .default) where Value: Codable {
+        self.init(url: url, processor: JSONStreamProcessor<Value>())
+    }
+}

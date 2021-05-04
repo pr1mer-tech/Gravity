@@ -1,6 +1,7 @@
 {
     "index": "Gravity",
-    "start": "Get Started",
-    "docs": "Documentation",
+    "start": "Installation",
+    "SWR": "SWR Documentation",
+    "Stream": "Stream Documentation",
     "how": "How it works"
 }

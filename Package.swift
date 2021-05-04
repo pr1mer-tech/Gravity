@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "Gravity",
     platforms: [
-        .macOS(.v11),
+        .macOS(.v10_15),
         .iOS(.v13),
         .tvOS(.v13),
         .watchOS(.v6)

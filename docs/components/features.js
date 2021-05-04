@@ -111,7 +111,7 @@ export default function Features() {
           }
         />
         <Feature
-          text="Remote + Local"
+          text="WebSocket support"
           icon={
             <svg
               width="24"
