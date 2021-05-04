@@ -19,7 +19,7 @@ import SwiftUI
 import Gravity
 
 struct LandmarkList: View {
-    @SWR(url: "https://example.org/api/endpoint", model: Landmark) var api
+    @SWR<URL, Landmark>(url: "https://example.org/api/endpoint") var api
     var body: some View {
         if let landmarks = api.data {
             List(landmarks, id: \.id) { landmark in
