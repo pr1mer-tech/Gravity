@@ -6,8 +6,7 @@
 //
 
 import SwiftUI
-
-@available(OSX 10.15, *)
+/// The returned object for Gravity Stream or SWR property wrappers.
 public class StateResponse<Key, Value>: ObservableObject where Key: Hashable {
     public var awaiting: Bool {
         return data == nil

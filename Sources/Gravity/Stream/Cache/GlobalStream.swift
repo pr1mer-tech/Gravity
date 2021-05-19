@@ -8,8 +8,8 @@
 import Foundation
 import Combine
 import Starscream
-public class StreamCache {
-    public static var shared = StreamCache()
+internal class StreamCache {
+    static var shared = StreamCache()
     
     let notification = NotificationCenter()
     

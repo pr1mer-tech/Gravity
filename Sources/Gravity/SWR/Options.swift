@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+/// Options for SWR property wrapper.
 public struct SWROptions: OptionSet {
     public let rawValue: Int
     

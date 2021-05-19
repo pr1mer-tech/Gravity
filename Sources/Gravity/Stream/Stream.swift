@@ -8,6 +8,7 @@
 import SwiftUI
 import Starscream
 
+/// A WebSocket property wrapper for SwiftUI
 @propertyWrapper
 public struct GravityStream<Value> : DynamicProperty {
     let uri: URL

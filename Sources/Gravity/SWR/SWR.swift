@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+/// Remote data fetching property wrapper that uses `stale-while-revalidate`.
 @propertyWrapper
 public struct SWR<Key, Value> : DynamicProperty where Key: Hashable {
     @ObservedObject var controller: SWRState<Key, Value>

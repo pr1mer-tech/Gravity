@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-public class SWRCache {
+internal class SWRCache {
     public static var shared = SWRCache()
     
     let notification = NotificationCenter()
