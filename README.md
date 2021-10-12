@@ -1,4 +1,7 @@
-# Gravity
+<p align="center">
+    <img src="https://gravity.pr1mer.tech/logo.svg" width={150} height={150} /> 
+    <h1 align="center">Gravity</h1>
+</p>
 
 
 ## Introduction
@@ -14,6 +17,20 @@ With Gravity, components will get **a stream of data updates constantly and auto
 
 ## Quick Start
 
+#### Installation
+
+The [Swift Package Manager](https://swift.org/package-manager/) is a tool for automating the distribution of Swift code and is integrated into the `swift` compiler.
+
+It is the recommended way to install Gravity.
+
+Once you have your Swift package set up, adding Gravity as a dependency is as easy as adding it to the `dependencies` value of your `Package.swift`.
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/pr1mer-tech/Gravity.git", .upToNextMajor(from: "0.1.0"))
+]
+```
+You can then import and use Gravity:
 ```swift
 import SwiftUI
 import Gravity
