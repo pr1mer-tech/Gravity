@@ -2,21 +2,12 @@
   "object": {
     "pins": [
       {
-        "package": "Starscream",
-        "repositoryURL": "https://github.com/daltoniam/Starscream",
+        "package": "Stores",
+        "repositoryURL": "https://github.com/omaralbeik/Stores",
         "state": {
           "branch": null,
-          "revision": "e6b65c6d9077ea48b4a7bdda8994a1d3c6969c8d",
-          "version": "3.1.1"
-        }
-      },
-      {
-        "package": "swift-nio-zlib-support",
-        "repositoryURL": "https://github.com/apple/swift-nio-zlib-support.git",
-        "state": {
-          "branch": null,
-          "revision": "37760e9a52030bb9011972c5213c3350fa9d41fd",
-          "version": "1.0.0"
+          "revision": "b835f7e9edb32163418caa533e1cf9d832b23326",
+          "version": "0.4.1"
         }
       }
     ]
