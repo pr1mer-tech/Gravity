@@ -34,13 +34,15 @@ public extension RemoteObjectDelegate {
 internal extension RemoteObjectDelegate {
     
     func sync() async throws {
-        let needPull = await self.store.needPull
         let needPush = await self.store.needPush
-        if !needPull.isEmpty {
-            try await requestPull(needPull: needPull)
-        }
+        let needPull = await self.store.needPull.subtracting(needPush)
+        
         if !needPush.isEmpty {
             try await requestPush(needPush: needPush)
+        }
+        
+        if !needPull.isEmpty {
+            try await requestPull(needPull: needPull)
         }
     }
     
