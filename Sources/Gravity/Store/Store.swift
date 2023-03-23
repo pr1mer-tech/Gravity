@@ -69,6 +69,10 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     }
     
     func objects(ids: [T.ID] = []) -> [T] {
+        var ids = ids
+        if ids.isEmpty {
+            ids = self.cache.allKeys
+        }
         let objects = ids.compactMap { id in
             let row = object(id: id)
             if row == nil {

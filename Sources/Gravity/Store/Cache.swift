@@ -58,6 +58,15 @@ final class Cache<Element> where Element: Codable & Identifiable {
     func removeValue(forKey key: Key) {
         wrapped.removeObject(forKey: WrappedKey(key))
     }
+    
+    var allKeys: [Key] {
+        if let all = wrapped.value(forKey: "allObjects") as? NSArray {
+            return all.map { key in
+                return (key as! Entry).value.id
+            }
+        }
+        return []
+    }
 }
 
 private extension Cache {

@@ -51,6 +51,8 @@ final class StorePerformance: XCTestCase {
                 guard store.object(id: id) != nil else { return }
             }
         }
+        // Test
+        store.objects()
     }
 }
 
