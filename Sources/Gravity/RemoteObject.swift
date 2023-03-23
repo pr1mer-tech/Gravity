@@ -12,12 +12,24 @@ public struct RemoteObject<Delegate> : DynamicProperty where Delegate: RemoteObj
     
     @ObservedObject var store: Store<Delegate>
     
-    var id: Delegate.Element.ID
+    var id: Delegate.Element.ID!
     
     public init(id: Delegate.Element.ID) {
         self.store = Delegate.shared.store
         self.id = id
-        self.projectedValue = RemoteBinding(id: id)
+        self.store.revalidate(ids: [id])
+    }
+    
+    public init(waitForId: Bool) {
+        self.store = Delegate.shared.store
+    }
+    
+    public mutating func updateId(id: Delegate.Element.ID) {
+        self.id = id
+        self.store.revalidate(ids: [id])
+    }
+    
+    public func revalidate() {
         self.store.revalidate(ids: [id])
     }
     
@@ -35,5 +47,7 @@ public struct RemoteObject<Delegate> : DynamicProperty where Delegate: RemoteObj
         }
     }
     
-    public var projectedValue: RemoteBinding<Delegate>
+    public var projectedValue: Binding<Delegate.Element> {
+        return .init(get: { self.wrappedValue! }, set: { self.wrappedValue = $0 })
+    }
 }
