@@ -41,9 +41,7 @@ internal extension RemoteObjectDelegate {
             try await requestPush(needPush: needPush)
         }
         
-        if !needPull.isEmpty {
-            try await requestPull(needPull: needPull)
-        }
+        try await requestPull(needPull: needPull)
     }
     
     func requestPush(needPush: Set<Element.ID>) async throws {
@@ -55,7 +53,6 @@ internal extension RemoteObjectDelegate {
     }
     
     func requestPull(needPull: Set<Element.ID>) async throws {
-        guard needPull.count > 0 else { return }
         let results = try await self.pull(ids: Array(needPull))
         try await self.store.save(elements: results, requestPush: false)
         // Remove from needPull

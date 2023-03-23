@@ -33,8 +33,10 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     }
     
     func revalidate(ids: [T.ID] = []) {
-        needPull.formUnion(ids)
-        guard !needPull.isEmpty else { return }
+        if !ids.isEmpty {
+            needPull.formUnion(ids)
+            guard !needPull.isEmpty else { return }
+        }
         try? self.scheduler.requestSync(delay: 0)
     }
     
