@@ -6,22 +6,23 @@
 //
 
 import Foundation
-import Stores
 
 @MainActor
 public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDelegate {
     typealias T = Delegate.Element
     
-    var coreDataStore: AnyMultiObjectStore<T>
+    let logger = Logger()
     
-    nonisolated required init(reference: String) {
-        self.coreDataStore = MultiCoreDataStore<Delegate.Element>(databaseName: reference).eraseToAnyStore()
-    }
+    let cache: Cache<Delegate.Element>
     
     var scheduler = Scheduler<Delegate>()
     
     var needPush = Set<T.ID>()
     var needPull = Set<T.ID>()
+
+    public nonisolated init(reference: String) throws {
+        self.cache = try Cache<Delegate.Element>(reference: reference)
+    }
     
     func purgePush(_ pushed: Set<T.ID>) {
         self.needPush = self.needPush.subtracting(pushed)
@@ -31,10 +32,21 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         self.needPull = self.needPull.subtracting(pulled)
     }
     
+    func revalidate(ids: [T.ID] = []) {
+        needPull.formUnion(ids)
+        guard !needPull.isEmpty else { return }
+        try? self.scheduler.requestSync(delay: 0)
+    }
+    
+    public func saveToDisk() throws {
+        try self.cache.saveToDisk()
+    }
+    
     func save(_ element: T, requestPush: Bool = true) throws {
-        try self.coreDataStore.save(element)
+        cache.insert(element)
         if requestPush {
             self.needPush.insert(element.id)
+            try scheduler.requestSync()
         }
         // Notify all views that something has changed
         self.objectWillChange.send()
@@ -42,18 +54,23 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     
     func save(elements: [T], requestPush: Bool = true) throws {
         try elements.forEach { element in
-            try self.save(element, requestPush: requestPush)
+            try save(element, requestPush: requestPush)
         }
     }
     
     func object(id: T.ID) -> T? {
-        return self.coreDataStore.object(withId: id)
+        cache.value(forKey: id)
     }
     
     func objects(ids: [T.ID] = []) -> [T] {
-        if ids.count > 0 {
-            return self.coreDataStore.objects(withIds: ids)
+        let objects = ids.compactMap { id in
+            let row = object(id: id)
+            if row == nil {
+                needPull.insert(id)
+            }
+            return row
         }
-        return self.coreDataStore.allObjects()
+        self.revalidate()
+        return objects
     }
 }

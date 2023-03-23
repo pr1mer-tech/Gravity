@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Stores
 
 public protocol RemoteObjectDelegate<Element> {
     associatedtype Element: Codable, Identifiable

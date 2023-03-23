@@ -17,6 +17,8 @@ public struct RemoteObjects<Delegate> : DynamicProperty where Delegate: RemoteOb
     public init(ids: [Delegate.Element.ID] = []) {
         self.store = Delegate.shared.store
         self.ids = ids
+        
+        self.store.revalidate(ids: ids)
     }
     
     public var wrappedValue: [Delegate.Element] {
