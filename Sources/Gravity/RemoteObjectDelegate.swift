@@ -22,13 +22,16 @@ public protocol RemoteObjectDelegate<Element> {
     func unsubscribe()
 }
 
-internal extension RemoteObjectDelegate {
+public extension RemoteObjectDelegate {
     func pull() async throws -> [Element] {
         fatalError("Not Implemented")
     }
     
     func subscribe() {}
     func unsubscribe() {}
+}
+
+internal extension RemoteObjectDelegate {
     
     func sync() async throws {
         let needPull = await self.store.needPull
