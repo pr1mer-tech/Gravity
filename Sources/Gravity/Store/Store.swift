@@ -58,6 +58,12 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         }
     }
     
+    func update(id: T.ID, _ update: (inout T) -> Void) throws {
+        guard var object = self.object(id: id) else { return }
+        update(&object)
+        try self.save(object)
+    }
+    
     func object(id: T.ID) -> T? {
         cache.value(forKey: id)
     }

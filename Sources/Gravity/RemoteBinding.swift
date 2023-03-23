@@ -17,11 +17,13 @@ public struct RemoteBinding<Delegate> where Delegate: RemoteObjectDelegate {
         Delegate.shared.store.revalidate(ids: [id])
     }
     
-    public subscript(dynamicMember string: String) -> Binding<Delegate.Element> {
-        return Binding<Delegate.Element> {
-            return Delegate.shared.store.object(id: id)!
+    public subscript<T>(dynamicMember keyPath: WritableKeyPath<Delegate.Element, T>) -> Binding<T> {
+        return Binding<T> {
+            return Delegate.shared.store.object(id: id)![keyPath: keyPath]
         } set: { newValue, transaction in
-            try? Delegate.shared.store.save(newValue)
+            try? Delegate.shared.store.update(id: id) { (object: inout Delegate.Element) in
+                object[keyPath: keyPath] = newValue
+            }
         }
     }
 }
