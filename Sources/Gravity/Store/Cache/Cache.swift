@@ -73,8 +73,10 @@ final class Cache<Element> where Element: RemoteRepresentable {
         entryCache.removeObject(forKey: WrappedKey(key))
     }
     
-    var allKeys: [Key] {
-        return Array(keyTracker.keys)
+    var allKeys: [Key]? {
+        let keys = keyTracker.keys
+        guard !keys.isEmpty else { return nil }
+        return Array(keys)
     }
 }
 
