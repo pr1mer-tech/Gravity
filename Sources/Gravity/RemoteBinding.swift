@@ -11,12 +11,13 @@ import SwiftUI
 @dynamicMemberLookup
 public struct RemoteBinding<Delegate> where Delegate: RemoteObjectDelegate {
     var id: Delegate.Element.ID
+    var request: RemoteRequest<Delegate.Element.ID>
     
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<Delegate.Element, T>) -> Binding<T> {
         return Binding<T> {
             return Delegate.shared.store.object(id: id)![keyPath: keyPath]
         } set: { newValue, transaction in
-            try? Delegate.shared.store.update(id: id) { (object: inout Delegate.Element) in
+            try? Delegate.shared.store.update(id: id, with: request) { (object: inout Delegate.Element) in
                 object[keyPath: keyPath] = newValue
             }
         }

@@ -45,7 +45,7 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         try self.cache.saveToDisk()
     }
     
-    func save(_ element: T, with request: RemoteRequest<T.ID>? = nil, requestPush: Bool = true) throws {
+    func save(_ element: T, with request: RemoteRequest<T.ID>, requestPush: Bool = true) throws {
         cache.insert(element, with: request)
         if requestPush {
             self.needPush += .id(element.id)
@@ -55,16 +55,16 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         self.objectWillChange.send()
     }
     
-    func save(elements: [T], with request: RemoteRequest<T.ID>? = nil, requestPush: Bool = true) throws {
+    func save(elements: [T], with request: RemoteRequest<T.ID>, requestPush: Bool = true) throws {
         try elements.forEach { element in
             try save(element, with: request, requestPush: requestPush)
         }
     }
     
-    func update(id: T.ID, _ update: (inout T) -> Void) throws {
+    func update(id: T.ID, with request: RemoteRequest<T.ID>, _ update: (inout T) -> Void) throws {
         guard var object = self.object(id: id) else { return }
         update(&object)
-        try self.save(object)
+        try self.save(object, with: request)
     }
     
     internal func object(id: T.ID) -> T? {

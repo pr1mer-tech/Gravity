@@ -36,16 +36,15 @@ final class Cache<Element> where Element: RemoteRepresentable {
         try? self.saveToDisk()
     }
     
-    func insert(_ value: Value, with request: RemoteRequest<Key>? = nil) {
+    func insert(_ value: Value, with request: RemoteRequest<Key>) {
         let date = dateProvider().addingTimeInterval(entryLifetime)
         let entry = Entry(value: value, expirationDate: date)
         entryCache.setObject(entry, forKey: WrappedKey(value.id))
-        if let reqIds = request?.ids {
-            if keyTracker.requestCache[reqIds] == nil {
-                keyTracker.requestCache[reqIds] = WrappedKeys(.init(arrayLiteral: value.id))
-            } else {
-                keyTracker.requestCache[reqIds]?.keys.insert(value.id)
-            }
+        let reqIds = request.ids
+        if keyTracker.requestCache[reqIds] == nil {
+            keyTracker.requestCache[reqIds] = WrappedKeys(.init(arrayLiteral: value.id))
+        } else {
+            keyTracker.requestCache[reqIds]?.keys.insert(value.id)
         }
         keyTracker.keys.insert(value.id)
     }
@@ -93,22 +92,6 @@ extension Cache {
         init(value: Value, expirationDate: Date) {
             self.value = value
             self.expirationDate = expirationDate
-        }
-    }
-}
-
-extension Cache {
-    subscript(key: Key) -> Value? {
-        get { return value(forKey: key) }
-        set {
-            guard let value = newValue else {
-                // If nil was assigned using our subscript,
-                // then we remove any value for that key:
-                removeValue(forKey: key)
-                return
-            }
-            
-            self.insert(value)
         }
     }
 }

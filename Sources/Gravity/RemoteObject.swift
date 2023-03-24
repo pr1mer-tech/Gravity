@@ -38,7 +38,7 @@ public struct RemoteObject<Delegate> : DynamicProperty where Delegate: RemoteObj
         nonmutating set {
             guard let newValue = newValue else { return }
             do {
-                try store.save(newValue)
+                try store.save(newValue, with: request)
             } catch {
                 print("### Save to \(Delegate.Element.self) Store Error: \(error)")
             }
@@ -48,6 +48,6 @@ public struct RemoteObject<Delegate> : DynamicProperty where Delegate: RemoteObj
     public var projectedValue: RemoteBinding<Delegate>? {
         guard let id = wrappedValue?.id else { return nil }
         guard Delegate.shared.store.object(id: id) != nil else { return nil }
-        return RemoteBinding(id: id)
+        return RemoteBinding(id: id, request: request)
     }
 }
