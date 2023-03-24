@@ -25,3 +25,25 @@ public struct RemoteBinding<Delegate> where Delegate: RemoteObjectDelegate {
         }
     }
 }
+
+public extension Binding {
+    func unwrap<T>(defaultValue: T) -> Binding<T> where Value: OptionalProtocol, Value.Wrapped == T {
+        if let wrappedValue = self.wrappedValue as? T {
+            return Binding<T>(get: { wrappedValue }, set: { newValue in
+                guard let newValue = newValue as? Value else { return }
+                self.wrappedValue = newValue
+            })
+        } else {
+            return (self.wrappedValue as? Binding)?.unwrap(defaultValue: defaultValue) ?? .constant(defaultValue)
+        }
+    }
+}
+
+public protocol OptionalProtocol {
+    associatedtype Wrapped
+    var wrappedValue: Wrapped? { get }
+}
+
+extension Optional: OptionalProtocol {
+    public var wrappedValue: Wrapped? { return self }
+}
