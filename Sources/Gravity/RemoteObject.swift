@@ -47,7 +47,13 @@ public struct RemoteObject<Delegate> : DynamicProperty where Delegate: RemoteObj
         }
     }
     
-    public var projectedValue: Binding<Delegate.Element> {
-        return .init(get: { self.wrappedValue! }, set: { self.wrappedValue = $0 })
+    public var projectedValue: Binding<Delegate.Element?> {
+        return .init(get: { self.wrappedValue }, set: { self.wrappedValue = $0 })
+    }
+}
+
+public extension Binding {
+    func unwrap<T>(defaultValue: T) -> Binding<T> where Value == Optional<T>  {
+        Binding<T>(get: { self.wrappedValue ?? defaultValue }, set: { self.wrappedValue = $0 })
     }
 }
