@@ -64,8 +64,8 @@ final class Cache<Element> where Element: RemoteRepresentable {
         return entry.value
     }
     
-    func value(forRequest request: RemoteRequest<Key>) -> [Value?] {
-        return keyTracker.requestCache[request.ids]?.keys.map(self.value(forKey:)) ?? Array<Value?>(repeating: nil, count: request.ids.count)
+    func keys(forRequest request: RemoteRequest<Key>) -> [Key]? {
+        return Array(keyTracker.requestCache[request.ids]?.keys ?? [])
     }
     
     func removeValue(forKey key: Key) {
