@@ -18,7 +18,7 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     var scheduler = Scheduler<Delegate>()
     
     var needPush = RemoteRequest<T.ID>.ids([])
-    var needPull = RemoteRequest<T.ID>.ids([])
+    var needPull = Set<RemoteRequest<T.ID>>()
 
     public nonisolated init(reference: String,
                             entryLifetime: TimeInterval = 12 * 60 * 60,
@@ -33,11 +33,11 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     }
     
     func purgePull(_ pulled: RemoteRequest<T.ID>) {
-        self.needPull -= pulled
+        self.needPull.remove(pulled)
     }
     
     func revalidate(request: RemoteRequest<T.ID>) {
-        needPull += request
+        needPull.insert(request)
         try? self.scheduler.requestSync(delay: 0)
     }
     
@@ -76,16 +76,11 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
             self.revalidate(request: request)
             return []
         }
-        let objects = ids.compactMap { id in
-            let row = object(id: id)
-            if row == nil {
-                needPull += .id(id)
-            }
-            return row
+        let objects = ids.map { self.object(id: $0) }
+        
+        if objects.contains(nil) {
+            self.revalidate(request: request)
         }
-        if !self.needPull.isEmpty {
-            self.revalidate(request: .ids([]))
-        }
-        return objects
+        return objects.compactMap { $0 }
     }
 }

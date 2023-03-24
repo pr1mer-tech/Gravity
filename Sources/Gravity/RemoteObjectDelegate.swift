@@ -37,7 +37,7 @@ internal extension RemoteObjectDelegate {
     
     func sync() async throws {
         let needPush = await self.store.needPush
-        let needPull = await self.store.needPull - needPush
+        let needPull = await self.store.needPull
         
         if !needPush.isEmpty {
             try await requestPush(needPush: needPush)
@@ -56,10 +56,12 @@ internal extension RemoteObjectDelegate {
         await self.store.purgePush(needPush)
     }
     
-    func requestPull(needPull: RemoteRequest<Element.ID>) async throws {
-        let results = try await self.pull(request: needPull)
-        try await self.store.save(elements: results, with: needPull, requestPush: false)
-        // Remove from needPull
-        await self.store.purgePull(needPull)
+    func requestPull(needPull: Set<RemoteRequest<Element.ID>>) async throws {
+        for pull in needPull {
+            let results = try await self.pull(request: pull)
+            try await self.store.save(elements: results, with: pull, requestPush: false)
+            // Remove from needPull
+            await self.store.purgePull(pull)
+        }
     }
 }

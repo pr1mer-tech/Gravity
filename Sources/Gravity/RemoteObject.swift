@@ -25,6 +25,7 @@ public struct RemoteObject<Delegate> : DynamicProperty where Delegate: RemoteObj
     
     public mutating func updateRequest(request: RemoteRequest<Delegate.Element.ID>) {
         self.request = request
+        self.store.objectWillChange.send() // Update the view
     }
     
     public func revalidate() {

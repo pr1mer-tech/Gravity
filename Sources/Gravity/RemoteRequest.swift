@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum RemoteRequest<T: Codable & Hashable> {
+public enum RemoteRequest<T: Codable & Hashable>: Hashable {
     case ids([T])
     case id(T)
     case all
