@@ -60,4 +60,15 @@ public enum RemoteRequest<T: Codable & Hashable> {
             return []
         }
     }
+    
+    public var isEmpty: Bool {
+        switch self {
+        case .ids(let array):
+            return array.isEmpty
+        case .id(let t):
+            return false
+        case .all:
+            return false
+        }
+    }
 }

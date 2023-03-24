@@ -70,7 +70,7 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     }
     
     func objects(request: RemoteRequest<T.ID>) -> [T] {
-        guard let ids = request.ids.isEmpty ? self.cache.allKeys : self.cache.keys(forRequest: request) else {
+        guard let ids = request.isEmpty ? self.cache.allKeys : self.cache.keys(forRequest: request) else {
             self.revalidate(request: request)
             return []
         }
