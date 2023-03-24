@@ -50,7 +50,7 @@ public enum RemoteRequest<T: Codable & Hashable> {
         lhs = lhs - rhs
     }
 
-    var ids: [T] {
+    public var ids: [T] {
         switch self {
         case .ids(let ids):
             return ids
