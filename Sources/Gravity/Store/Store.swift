@@ -67,7 +67,7 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         try self.save(object)
     }
     
-    private func object(id: T.ID) -> T? {
+    internal func object(id: T.ID) -> T? {
         cache.value(forKey: id)
     }
     
