@@ -12,30 +12,30 @@ public struct RemoteObject<Delegate> : DynamicProperty where Delegate: RemoteObj
     
     @ObservedObject var store: Store<Delegate>
     
-    var id: Delegate.Element.ID!
+    var request: RemoteRequest<Delegate.Element.ID>!
     
-    public init(id: Delegate.Element.ID) {
+    public init(request: RemoteRequest<Delegate.Element.ID>) {
         self.store = Delegate.shared.store
-        self.id = id
-        self.store.revalidate(ids: [id])
+        self.request = request
+        self.store.revalidate(request: request)
     }
     
-    public init(waitForId: Bool) {
+    public init(waitForRequest: Bool) {
         self.store = Delegate.shared.store
     }
     
-    public mutating func updateId(id: Delegate.Element.ID) {
-        self.id = id
-        self.store.revalidate(ids: [id])
+    public mutating func updateRequest(request: RemoteRequest<Delegate.Element.ID>) {
+        self.request = request
+        self.store.revalidate(request: request)
     }
     
     public func revalidate() {
-        self.store.revalidate(ids: [id])
+        self.store.revalidate(request: request)
     }
     
     public var wrappedValue: Delegate.Element? {
         get {
-            return store.object(id: id)
+            return store.objects(request: request).first
         }
         nonmutating set {
             guard let newValue = newValue else { return }

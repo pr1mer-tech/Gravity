@@ -17,26 +17,25 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     
     var scheduler = Scheduler<Delegate>()
     
-    var needPush = Set<T.ID>()
-    var needPull = Set<T.ID>()
+    var needPush = RemoteRequest<T.ID>.ids([])
+    var needPull = RemoteRequest<T.ID>.ids([])
 
-    public nonisolated init(reference: String) throws {
-        self.cache = try Cache<Delegate.Element>(reference: reference)
+    public nonisolated init(reference: String,
+                            entryLifetime: TimeInterval = 12 * 60 * 60,
+                            maximumEntryCount: Int = 50) throws {
+        self.cache = try Cache<Delegate.Element>(reference: reference, entryLifetime: entryLifetime, maximumEntryCount: maximumEntryCount)
     }
     
-    func purgePush(_ pushed: Set<T.ID>) {
-        self.needPush = self.needPush.subtracting(pushed)
+    func purgePush(_ pushed: RemoteRequest<T.ID>) {
+        self.needPush -= pushed
     }
     
-    func purgePull(_ pulled: Set<T.ID>) {
-        self.needPull = self.needPull.subtracting(pulled)
+    func purgePull(_ pulled: RemoteRequest<T.ID>) {
+        self.needPull -= pulled
     }
     
-    func revalidate(ids: [T.ID] = []) {
-        if !ids.isEmpty {
-            needPull.formUnion(ids)
-            guard !needPull.isEmpty else { return }
-        }
+    func revalidate(request: RemoteRequest<T.ID>) {
+        needPull += request
         try? self.scheduler.requestSync(delay: 0)
     }
     
@@ -44,19 +43,19 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         try self.cache.saveToDisk()
     }
     
-    func save(_ element: T, requestPush: Bool = true) throws {
-        cache.insert(element)
+    func save(_ element: T, with request: RemoteRequest<T.ID>? = nil, requestPush: Bool = true) throws {
+        cache.insert(element, with: request)
         if requestPush {
-            self.needPush.insert(element.id)
+            self.needPush += .id(element.id)
             try scheduler.requestSync()
         }
         // Notify all views that something has changed
         self.objectWillChange.send()
     }
     
-    func save(elements: [T], requestPush: Bool = true) throws {
+    func save(elements: [T], with request: RemoteRequest<T.ID>? = nil, requestPush: Bool = true) throws {
         try elements.forEach { element in
-            try save(element, requestPush: requestPush)
+            try save(element, with: request, requestPush: requestPush)
         }
     }
     
@@ -66,23 +65,23 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         try self.save(object)
     }
     
-    func object(id: T.ID) -> T? {
+    private func object(id: T.ID) -> T? {
         cache.value(forKey: id)
     }
     
-    func objects(ids: [T.ID] = []) -> [T] {
-        var ids = ids
+    func objects(request: RemoteRequest<T.ID>) -> [T] {
+        var ids = request.ids
         if ids.isEmpty {
             ids = self.cache.allKeys
         }
         let objects = ids.compactMap { id in
             let row = object(id: id)
             if row == nil {
-                needPull.insert(id)
+                needPull += .id(id)
             }
             return row
         }
-        self.revalidate()
+        self.revalidate(request: .ids([]))
         return objects
     }
 }
