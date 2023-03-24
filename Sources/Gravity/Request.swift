@@ -71,4 +71,11 @@ public enum RemoteRequest<T: Codable & Hashable> {
             return false
         }
     }
+    
+    public var isAll: Bool {
+        if case .all = self {
+            return true
+        }
+        return false
+    }
 }
