@@ -22,15 +22,17 @@ final class CacheCodable: XCTestCase {
     func testCoding() throws {
         let store = UserBase.shared.store
         var uuids = [UUID]()
-        for _ in 0...100 {
+        for _ in 0...1000 {
             let id = UUID()
             try? store.save(User(id: id, email: "example@example.com"), requestPush: false)
             uuids.append(id)
         }
         
-        let data = try JSONEncoder().encode(UserBase.shared.store.cache)
-        let decoded = try JSONDecoder().decode(Cache<UserBase.Element>.self, from: data)
-        
-        XCTAssertEqual(UserBase.shared.store.cache, decoded)
+        self.measure {
+            guard let data = try? JSONEncoder().encode(UserBase.shared.store.cache) else { return }
+            let decoded = try? JSONDecoder().decode(Cache<UserBase.Element>.self, from: data)
+            
+            XCTAssertEqual(UserBase.shared.store.cache, decoded)
+        }
     }
 }
