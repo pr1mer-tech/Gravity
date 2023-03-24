@@ -40,7 +40,7 @@ public struct RemoteObjects<Delegate> : DynamicProperty where Delegate: RemoteOb
         }
         nonmutating set {
             do {
-                try store.save(elements: newValue)
+                try store.save(elements: newValue, with: request)
             } catch {
                 print("### Save to \(Delegate.Element.self) Store Error: \(error)")
             }
