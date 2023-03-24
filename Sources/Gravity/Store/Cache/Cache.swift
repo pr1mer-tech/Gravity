@@ -65,7 +65,8 @@ final class Cache<Element> where Element: RemoteRepresentable {
     }
     
     func keys(forRequest request: RemoteRequest<Key>) -> [Key]? {
-        return Array(keyTracker.requestCache[request.ids]?.keys ?? [])
+        guard let keys = keyTracker.requestCache[request.ids]?.keys else { return nil }
+        return Array(keys)
     }
     
     func removeValue(forKey key: Key) {
