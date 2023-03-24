@@ -26,7 +26,7 @@ public struct RemoteBinding<Delegate> where Delegate: RemoteObjectDelegate {
 }
 
 public extension Binding {
-    func unwrap<T>(defaultValue: T) -> Binding<T> where Value == Optional<T>  {
+    func unwrap<T>(defaultValue: T) -> Binding<T>! where Value == Optional<T>  {
         Binding<T>(get: { self.wrappedValue ?? defaultValue }, set: { self.wrappedValue = $0 })
     }
 }
