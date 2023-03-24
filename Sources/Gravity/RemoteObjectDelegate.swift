@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol RemoteRepresentable: Codable, Identifiable where ID: Codable & Hashable {}
+public protocol RemoteRepresentable: Codable, Hashable, Identifiable where ID: Codable & Hashable {}
 
 public protocol RemoteObjectDelegate<Element> {
     associatedtype Element: RemoteRepresentable
