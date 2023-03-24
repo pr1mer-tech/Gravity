@@ -23,7 +23,9 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     public nonisolated init(reference: String,
                             entryLifetime: TimeInterval = 12 * 60 * 60,
                             maximumEntryCount: Int = 50) throws {
-        self.cache = try Cache<Delegate.Element>(reference: reference, entryLifetime: entryLifetime, maximumEntryCount: maximumEntryCount)
+        self.cache = try Cache<Delegate.Element>(withReference: reference)
+        self.cache.entryLifetime = entryLifetime
+        self.cache.entryCache.countLimit = maximumEntryCount
     }
     
     func purgePush(_ pushed: RemoteRequest<T.ID>) {

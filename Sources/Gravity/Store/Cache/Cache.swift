@@ -12,16 +12,16 @@ final class Cache<Element> where Element: RemoteRepresentable {
     typealias Key = Element.ID
     typealias Value = Element
     
-    private let entryCache = NSCache<WrappedKey<Key>, Entry>()
+    let entryCache = NSCache<WrappedKey<Key>, Entry>()
     
     
     private let dateProvider: () -> Date
-    private let entryLifetime: TimeInterval
+    var entryLifetime: TimeInterval
     private let keyTracker = KeyTracker()
     
     internal var reference: String
     
-    init(reference: String,
+    internal init(reference: String,
          dateProvider: @escaping () -> Date = Date.init,
          entryLifetime: TimeInterval = 12 * 60 * 60,
          maximumEntryCount: Int = 50) {
@@ -77,7 +77,7 @@ final class Cache<Element> where Element: RemoteRepresentable {
     }
 }
 
-private extension Cache {
+extension Cache {
     final class Entry: Codable, Equatable {
         static func == (lhs: Cache<Element>.Entry, rhs: Cache<Element>.Entry) -> Bool {
             guard lhs.value.id == rhs.value.id else { return false }

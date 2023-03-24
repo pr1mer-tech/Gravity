@@ -14,7 +14,7 @@ protocol CacheDecodable: Codable {
 }
 
 extension CacheDecodable {
-    init(reference: String) throws {
+    init(withReference reference: String) throws {
         // Check if file exists
         let fileManager = FileManager.default
         let url = Self.cacheURL(for: reference)
