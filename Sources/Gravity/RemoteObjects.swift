@@ -17,8 +17,8 @@ public struct RemoteObjects<Delegate> : DynamicProperty where Delegate: RemoteOb
     public init(request: RemoteRequest<Delegate.Element.ID>) {
         self.store = Delegate.shared.store
         self.request = request
-        
-        self.store.revalidate(request: request)
+//        
+//        self.store.revalidate(request: request)
     }
     
     public init(waitForRequest: Bool) {
@@ -27,7 +27,7 @@ public struct RemoteObjects<Delegate> : DynamicProperty where Delegate: RemoteOb
     
     public mutating func updateRequest(request: RemoteRequest<Delegate.Element.ID>) {
         self.request = request
-        self.store.revalidate(request: request)
+//        self.store.revalidate(request: request)
     }
     
     public func revalidate() {
