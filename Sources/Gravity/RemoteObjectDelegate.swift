@@ -39,11 +39,13 @@ internal extension RemoteObjectDelegate {
         let needPush = await self.store.needPush
         let needPull = await self.store.needPull - needPush
         
-        if !needPush.ids.isEmpty {
+        if !needPush.isEmpty {
             try await requestPush(needPush: needPush)
         }
         
-        try await requestPull(needPull: needPull)
+        if !needPull.isEmpty {
+            try await requestPull(needPull: needPull)
+        }
     }
     
     func requestPush(needPush: RemoteRequest<Element.ID>) async throws {
