@@ -45,9 +45,8 @@ public struct RemoteObject<Delegate> : DynamicProperty where Delegate: RemoteObj
         }
     }
     
-    public var projectedValue: RemoteBinding<Delegate>? {
-        guard let id = wrappedValue?.id else { return nil }
-        guard Delegate.shared.store.object(id: id) != nil else { return nil }
-        return RemoteBinding(id: id, request: request)
+    public var projectedValue: Binding<Delegate.Element>? {
+        guard self.wrappedValue != nil else { return nil }
+        return .init(get: { self.wrappedValue! }, set: { self.wrappedValue = $0 })
     }
 }
