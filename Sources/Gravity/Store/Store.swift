@@ -87,7 +87,7 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     /// Removes object from the cache, and updates all the views displaying this element.
     /// - Parameter id: the id of the element
     public func delete(elementWithId id: Delegate.Element.ID) throws {
-        cache.removeValue(forKey: id)
+        cache.removeValue(forKey: id, silently: true)
         // Notify all views that something has changed
         self.objectWillChange.send()
     }

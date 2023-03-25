@@ -68,7 +68,11 @@ final class Cache<Element> where Element: RemoteRepresentable {
         return Array(keys)
     }
     
-    func removeValue(forKey key: Key) {
+    func removeValue(forKey key: Key, silently: Bool = false) {
+        if silently {
+            self.keyTracker.keys.remove(key)
+            self.keyTracker.requestCache.forEach { $1.keys.remove(key) }
+        }
         entryCache.removeObject(forKey: WrappedKey(key))
     }
     
