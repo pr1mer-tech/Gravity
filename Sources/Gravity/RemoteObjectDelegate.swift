@@ -15,6 +15,9 @@ public protocol RemoteObjectDelegate<Element> {
     
     var store: Store<Self> { get } // Where the DB data will be stored
     
+    // Data processing
+    func process(elements: [Element], for request: RemoteRequest<Element.ID>) -> [Element]
+    
     // No reactivity
     func pull(request: RemoteRequest<Element.ID>) async throws -> [Element]
     func push(elements: [Element]) async throws
@@ -25,6 +28,10 @@ public protocol RemoteObjectDelegate<Element> {
 }
 
 public extension RemoteObjectDelegate {
+    func process(elements: [Element], for request: RemoteRequest<Element.ID>) -> [Element] {
+        return elements
+    }
+    
     func subscribe(request: RemoteRequest<Element.ID>) -> Bool {
         return false
     }

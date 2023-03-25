@@ -68,6 +68,7 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     /// - Parameters:
     ///   - element: Whatever element
     ///   - request: The request you're subscribing to
+    ///   - interval: the delay at which Gravity will push the elements to your backend. This is useful when you expect a lot of updates, and want to wait until you have a final object.
     public func add(_ element: Delegate.Element, with request: RemoteRequest<Delegate.Element.ID>, requestPushWithInterval interval: TimeInterval? = nil) throws {
         try save(element, with: request, requestPushWithInterval: interval)
     }
@@ -81,6 +82,14 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         guard var object = self.object(id: id) else { return }
         update(&object)
         try self.save(object, with: request, requestPushWithInterval: interval)
+    }
+    
+    /// Removes object from the cache, and updates all the views displaying this element.
+    /// - Parameter id: the id of the element
+    public func delete(elementWithId id: Delegate.Element.ID) throws {
+        cache.removeValue(forKey: id)
+        // Notify all views that something has changed
+        self.objectWillChange.send()
     }
     
     func update(id: T.ID, with request: RemoteRequest<T.ID>, _ update: (inout T) -> Void) throws {
@@ -103,7 +112,7 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         if objects.contains(nil) {
             self.revalidate(request: request)
         }
-        return objects.compactMap { $0 }
+        return Delegate.shared.process(elements: objects.compactMap { $0 }, for: request)
     }
 }
 
