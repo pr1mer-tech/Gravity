@@ -17,7 +17,7 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     
     var scheduler = Scheduler<Delegate>()
     
-    var needPush = RemoteRequest<T.ID>.ids([])
+    var needPush = Set<T.ID>()
     var needPull = Set<RemoteRequest<T.ID>>()
     
     var subscriptions = Set<RemoteRequest<T.ID>>()
@@ -30,8 +30,8 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         self.cache.entryCache.countLimit = maximumEntryCount
     }
     
-    func purgePush(_ pushed: RemoteRequest<T.ID>) {
-        self.needPush -= pushed
+    func purgePush(_ pushed: Set<T.ID>) {
+        self.needPush.subtract(pushed)
     }
     
     func purgePull(_ pulled: RemoteRequest<T.ID>) {
@@ -50,7 +50,7 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     func save(_ element: T, with request: RemoteRequest<T.ID>, requestPush: Bool = true) throws {
         cache.insert(element, with: request)
         if requestPush {
-            self.needPush += .id(element.id)
+            self.needPush.insert(element.id)
             try scheduler.requestSync()
         }
         // Notify all views that something has changed

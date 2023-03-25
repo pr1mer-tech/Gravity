@@ -46,8 +46,8 @@ internal extension RemoteObjectDelegate {
         }
     }
     
-    func requestPush(needPush: RemoteRequest<Element.ID>) async throws {
-        let objects = await self.store.objects(request: needPush)
+    func requestPush(needPush: Set<Element.ID>) async throws {
+        let objects = try await needPush.compactAsyncMap { await self.store.object(id: $0) }
         guard objects.count > 0 else { return }
         try await self.push(elements: objects)
         // Remove from needPush
@@ -61,5 +61,35 @@ internal extension RemoteObjectDelegate {
             // Remove from needPull
             await self.store.purgePull(pull)
         }
+    }
+}
+
+internal extension Sequence {
+    func compactAsyncMap<T>(
+        _ transform: @escaping (Element) async throws -> T?
+    ) async throws -> [T] {
+        let tasks = map { element in
+            Task {
+                try await transform(element)
+            }
+        }
+        
+        let results = try await tasks.asyncMap { task in
+            try await task.value
+        }
+        
+        return results.compactMap { $0 }
+    }
+    
+    func asyncMap<T>(
+        _ transform: (Element) async throws -> T
+    ) async rethrows -> [T] {
+        var values = [T]()
+        
+        for element in self {
+            try await values.append(transform(element))
+        }
+        
+        return values
     }
 }
