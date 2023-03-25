@@ -19,6 +19,8 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     
     var needPush = RemoteRequest<T.ID>.ids([])
     var needPull = Set<RemoteRequest<T.ID>>()
+    
+    var subscriptions = Set<RemoteRequest<T.ID>>()
 
     public nonisolated init(reference: String,
                             entryLifetime: TimeInterval = 12 * 60 * 60,
@@ -61,6 +63,26 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         }
     }
     
+    
+    /// Adds element to the store, and updates all the views subscribed to the request, or displaying this element.
+    /// - Parameters:
+    ///   - element: Whatever element
+    ///   - request: The request you're subscribing to
+    public func add(_ element: Delegate.Element, with request: RemoteRequest<Delegate.Element.ID>) throws {
+        try save(element, with: request, requestPush: false)
+    }
+    
+    /// Updates element in the store, and updates all the views subscribed to the request, or displaying this element.
+    /// - Parameters:
+    ///   - id: The id/key of the element you need to update.
+    ///   - request: The request you're subscribing to
+    ///   - update: The inout function to update the element.
+    public func update(elementWithID id: Delegate.Element.ID, with request: RemoteRequest<Delegate.Element.ID>, _ update: (inout Delegate.Element) -> Void) throws {
+        guard var object = self.object(id: id) else { return }
+        update(&object)
+        try self.save(object, with: request, requestPush: false)
+    }
+    
     func update(id: T.ID, with request: RemoteRequest<T.ID>, _ update: (inout T) -> Void) throws {
         guard var object = self.object(id: id) else { return }
         update(&object)
@@ -82,5 +104,19 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
             self.revalidate(request: request)
         }
         return objects.compactMap { $0 }
+    }
+}
+
+extension Store {
+    func subscribe(to request: RemoteRequest<T.ID>) {
+        guard !self.subscriptions.contains(request) else { return }
+        // Ask delegate
+        if Delegate.shared.subscribe(request: request) {
+            self.subscriptions.insert(request)
+        }
+    }
+    
+    func unsubscribe(to request: RemoteRequest<T.ID>) {
+        Delegate.shared.unsubscribe(request: request)
     }
 }

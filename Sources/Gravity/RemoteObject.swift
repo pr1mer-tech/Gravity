@@ -12,18 +12,26 @@ public struct RemoteObject<Delegate> : DynamicProperty where Delegate: RemoteObj
     
     @ObservedObject var store: Store<Delegate>
     
+    var waitForRequest = false
     var request: RemoteRequest<Delegate.Element.ID>!
     
     public init(request: RemoteRequest<Delegate.Element.ID>) {
         self.store = Delegate.shared.store
         self.request = request
+        self.store.subscribe(to: request)
     }
     
     public init(waitForRequest: Bool) {
         self.store = Delegate.shared.store
+        self.waitForRequest = true
     }
     
     public mutating func updateRequest(request: RemoteRequest<Delegate.Element.ID>) {
+        if !waitForRequest {
+            self.store.unsubscribe(to: self.request)
+            self.store.subscribe(to: request)
+        }
+        self.waitForRequest = false
         self.request = request
     }
     

@@ -20,17 +20,15 @@ public protocol RemoteObjectDelegate<Element> {
     func push(elements: [Element]) async throws
     
     // Reactivity
-    func subscribe()
-    func unsubscribe()
+    func subscribe(request: RemoteRequest<Element.ID>) -> Bool
+    func unsubscribe(request: RemoteRequest<Element.ID>)
 }
 
 public extension RemoteObjectDelegate {
-    func pull() async throws -> [Element] {
-        fatalError("Not Implemented")
+    func subscribe(request: RemoteRequest<Element.ID>) -> Bool {
+        return false
     }
-    
-    func subscribe() {}
-    func unsubscribe() {}
+    func unsubscribe(request: RemoteRequest<Element.ID>) {}
 }
 
 internal extension RemoteObjectDelegate {
