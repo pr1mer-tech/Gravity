@@ -14,7 +14,9 @@ class Scheduler<Delegate> where Delegate: RemoteObjectDelegate {
         guard task == nil else { return }
         self.task = Task {
             // Sleep for N second
-            try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            if delay > 0 {
+                try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            }
             // Sync
             try await Delegate.shared.sync()
         }

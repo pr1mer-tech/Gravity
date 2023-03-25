@@ -47,19 +47,19 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         try self.cache.saveToDisk()
     }
     
-    func save(_ element: T, with request: RemoteRequest<T.ID>, requestPush: Bool = true) throws {
+    func save(_ element: T, with request: RemoteRequest<T.ID>, requestPushWithInterval interval: TimeInterval? = 5) throws {
         cache.insert(element, with: request)
-        if requestPush {
+        if let interval = interval {
             self.needPush.insert(element.id)
-            try scheduler.requestSync()
+            try scheduler.requestSync(delay: interval)
         }
         // Notify all views that something has changed
         self.objectWillChange.send()
     }
     
-    func save(elements: [T], with request: RemoteRequest<T.ID>, requestPush: Bool = true) throws {
+    func save(elements: [T], with request: RemoteRequest<T.ID>, requestPushWithInterval interval: TimeInterval? = 5) throws {
         try elements.forEach { element in
-            try save(element, with: request, requestPush: requestPush)
+            try save(element, with: request, requestPushWithInterval: interval)
         }
     }
     
@@ -68,8 +68,8 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     /// - Parameters:
     ///   - element: Whatever element
     ///   - request: The request you're subscribing to
-    public func add(_ element: Delegate.Element, with request: RemoteRequest<Delegate.Element.ID>, requestPush: Bool = false) throws {
-        try save(element, with: request, requestPush: requestPush)
+    public func add(_ element: Delegate.Element, with request: RemoteRequest<Delegate.Element.ID>, requestPushWithInterval interval: TimeInterval? = nil) throws {
+        try save(element, with: request, requestPushWithInterval: interval)
     }
     
     /// Updates element in the store, and updates all the views subscribed to the request, or displaying this element.
@@ -77,10 +77,10 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     ///   - id: The id/key of the element you need to update.
     ///   - request: The request you're subscribing to
     ///   - update: The inout function to update the element.
-    public func update(elementWithID id: Delegate.Element.ID, with request: RemoteRequest<Delegate.Element.ID>, requestPush: Bool = false, _ update: (inout Delegate.Element) -> Void) throws {
+    public func update(elementWithID id: Delegate.Element.ID, with request: RemoteRequest<Delegate.Element.ID>, requestPushWithInterval interval: TimeInterval? = nil, _ update: (inout Delegate.Element) -> Void) throws {
         guard var object = self.object(id: id) else { return }
         update(&object)
-        try self.save(object, with: request, requestPush: requestPush)
+        try self.save(object, with: request, requestPushWithInterval: interval)
     }
     
     func update(id: T.ID, with request: RemoteRequest<T.ID>, _ update: (inout T) -> Void) throws {

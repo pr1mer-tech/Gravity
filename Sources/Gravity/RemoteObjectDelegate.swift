@@ -57,7 +57,7 @@ internal extension RemoteObjectDelegate {
     func requestPull(needPull: Set<RemoteRequest<Element.ID>>) async throws {
         for pull in needPull {
             let results = try await self.pull(request: pull)
-            try await self.store.save(elements: results, with: pull, requestPush: false)
+            try await self.store.save(elements: results, with: pull, requestPushWithInterval: nil)
             // Remove from needPull
             await self.store.purgePull(pull)
         }
