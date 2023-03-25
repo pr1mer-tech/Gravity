@@ -117,6 +117,7 @@ extension Store {
     }
     
     func unsubscribe(to request: RemoteRequest<T.ID>) {
+        guard self.subscriptions.contains(request) else { return }
         Delegate.shared.unsubscribe(request: request)
     }
 }
