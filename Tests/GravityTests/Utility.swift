@@ -25,7 +25,7 @@ struct User: RemoteRepresentable {
 struct UserBase: RemoteObjectDelegate {
     typealias Element = User
     
-    var store = try! Store<UserBase>(reference: "users", maximumEntryCount: 1001)
+    var store = try! Store<UserBase>(reference: "users", maximumEntryCount: 1100)
     
     func pull(request: Gravity.RemoteRequest<UUID>) async throws -> [User] {
         return request.ids.map { id in

@@ -24,7 +24,7 @@ final class CacheCodable: XCTestCase {
         var uuids = [UUID]()
         for _ in 0...1000 {
             let id = UUID()
-            try? store.save(User(id: id, email: "example@example.com"), requestPush: false)
+            try? store.save(User(id: id, email: "example@example.com"), with: .id(id), requestPushWithInterval: nil)
             uuids.append(id)
         }
         

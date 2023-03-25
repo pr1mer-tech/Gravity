@@ -68,11 +68,7 @@ final class Cache<Element> where Element: RemoteRepresentable {
         return Array(keys)
     }
     
-    func removeValue(forKey key: Key, silently: Bool = false) {
-        if silently {
-            self.keyTracker.keys.remove(key)
-            self.keyTracker.requestCache.forEach { $1.keys.remove(key) }
-        }
+    func removeValue(forKey key: Key) {
         entryCache.removeObject(forKey: WrappedKey(key))
     }
     
@@ -113,7 +109,8 @@ private extension Cache {
             }
             
             keys.remove(entry.value.id)
-            requestCache = requestCache.filter { !$1.keys.contains(entry.value.id) } // Removing all request where entry was dropped
+            requestCache.forEach { $1.keys.remove(entry.value.id) }
+//            requestCache = requestCache.filter { !$1.keys.contains(entry.value.id) } // Removing all request where entry was dropped
         }
     }
 }

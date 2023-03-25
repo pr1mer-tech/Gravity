@@ -16,7 +16,8 @@ final class StorePerformance: XCTestCase {
         let store = UserBase.shared.store
         self.measure {
             for _ in 0...2000 {
-                try? store.save(User(id: UUID(), email: "example@example.com"), requestPush: false)
+                let id = UUID()
+                try? store.save(User(id: id, email: "example@example.com"), with: .id(id), requestPushWithInterval: nil)
             }
         }
     }
@@ -27,7 +28,7 @@ final class StorePerformance: XCTestCase {
         var uuids = [UUID]()
         for _ in 0...1000 {
             let id = UUID()
-            try? store.save(User(id: id, email: "example@example.com"), requestPush: false)
+            try? store.save(User(id: id, email: "example@example.com"), with: .id(id), requestPushWithInterval: nil)
             uuids.append(id)
         }
         self.measure {
