@@ -61,6 +61,9 @@ internal extension RemoteObjectDelegate {
         if !needPull.isEmpty {
             try await requestPull(needPull: needPull)
         }
+        
+        // Time to save to disk
+        try await self.store.saveToDisk()
     }
     
     func requestPush(needPush: Set<Element.ID>) async throws {
