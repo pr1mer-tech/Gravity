@@ -18,9 +18,10 @@ public protocol RemoteObjectDelegate<Element> {
     // Data processing
     func process(elements: [Element], for request: RemoteRequest<Element.ID>) -> [Element]
     
-    // No reactivity
+    // CRUD
     func pull(request: RemoteRequest<Element.ID>) async throws -> [Element]
     func push(elements: [Element]) async throws
+    func pop(elements: [Element]) async throws
     
     // Reactivity
     func subscribe(request: RemoteRequest<Element.ID>) -> Bool
@@ -30,6 +31,10 @@ public protocol RemoteObjectDelegate<Element> {
 public extension RemoteObjectDelegate {
     func process(elements: [Element], for request: RemoteRequest<Element.ID>) -> [Element] {
         return elements
+    }
+    
+    func pop(elements: [Element]) async throws {
+        fatalError("Not Implemented")
     }
     
     func subscribe(request: RemoteRequest<Element.ID>) -> Bool {
@@ -43,9 +48,14 @@ internal extension RemoteObjectDelegate {
     func sync() async throws {
         let needPush = await self.store.needPush
         let needPull = await self.store.needPull
+        let needPop  = await self.store.needPop
         
         if !needPush.isEmpty {
             try await requestPush(needPush: needPush)
+        }
+        
+        if !needPop.isEmpty {
+            try await requestPop(needPop: needPop)
         }
         
         if !needPull.isEmpty {
@@ -68,6 +78,12 @@ internal extension RemoteObjectDelegate {
             // Remove from needPull
             await self.store.purgePull(pull)
         }
+    }
+    
+    func requestPop(needPop: Set<Element>) async throws {
+        try await self.pop(elements: Array(needPop))
+        // Remove from needPop
+        await self.store.purgePop(needPop)
     }
 }
 

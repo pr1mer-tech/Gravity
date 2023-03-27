@@ -19,6 +19,7 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     
     var needPush = Set<T.ID>()
     var needPull = Set<RemoteRequest<T.ID>>()
+    var needPop  = Set<T>()
     
     var subscriptions = Set<RemoteRequest<T.ID>>()
 
@@ -36,6 +37,10 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     
     func purgePull(_ pulled: RemoteRequest<T.ID>) {
         self.needPull.remove(pulled)
+    }
+    
+    func purgePop(_ popped: Set<T>) {
+        self.needPop.subtract(popped)
     }
     
     func revalidate(request: RemoteRequest<T.ID>) {
@@ -86,8 +91,12 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     
     /// Removes object from the cache, and updates all the views displaying this element.
     /// - Parameter id: the id of the element
-    public func delete(elementWithId id: Delegate.Element.ID) throws {
-        cache.removeValue(forKey: id)
+    public func delete(element: Delegate.Element, requestPopWithInterval interval: TimeInterval? = nil) throws {
+        if let interval = interval {
+            self.needPop.insert(element)
+            try scheduler.requestSync(delay: interval)
+        }
+        cache.removeValue(forKey: element.id)
         // Notify all views that something has changed
         self.objectWillChange.send()
     }
