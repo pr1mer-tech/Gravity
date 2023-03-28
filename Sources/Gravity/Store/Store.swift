@@ -111,7 +111,10 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         cache.value(forKey: id)
     }
     
-    func objects(request: RemoteRequest<T.ID>) -> [T] {
+    /// Get elements from the store
+    /// - Parameter request: The request you're making to the store
+    /// - Returns: An array of elements. If an element is not in cache or expired, it will be added to the revalidation queue, but not returned in the array.
+    public func objects(request: RemoteRequest<Delegate.Element.ID>) -> [Delegate.Element] {
         guard let ids = request.isAll ? self.cache.allKeys : self.cache.keys(forRequest: request) else {
             self.revalidate(request: request)
             return []
