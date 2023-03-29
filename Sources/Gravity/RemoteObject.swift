@@ -19,6 +19,8 @@ public struct RemoteObject<Delegate> : DynamicProperty where Delegate: RemoteObj
         self.store = Delegate.shared.store
         self.request = request
         self.store.subscribe(to: request)
+        // Revalidate
+        self.revalidate()
     }
     
     public init(waitForRequest: Bool) {
@@ -33,6 +35,8 @@ public struct RemoteObject<Delegate> : DynamicProperty where Delegate: RemoteObj
         }
         self.waitForRequest = false
         self.request = request
+        // Revalidate
+        self.revalidate()
     }
     
     public func revalidate() {

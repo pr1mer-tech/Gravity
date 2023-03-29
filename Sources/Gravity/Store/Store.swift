@@ -43,7 +43,9 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
         self.needPop.subtract(popped)
     }
     
-    func revalidate(request: RemoteRequest<T.ID>) {
+    /// Revalidate request
+    /// - Parameter request: the request you need to invalidate
+    public func revalidate(request: RemoteRequest<Delegate.Element.ID>) {
         needPull.insert(request)
         try? self.scheduler.requestSync(delay: 0)
     }
