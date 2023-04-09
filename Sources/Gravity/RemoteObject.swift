@@ -18,7 +18,7 @@ public struct RemoteObject<Delegate> : DynamicProperty where Delegate: RemoteObj
     public init(request: RemoteRequest<Delegate.Element.ID>) {
         self.store = Delegate.shared.store
         self.request = request
-        self.store.subscribe(to: request)
+        self.store.realtimeController.subscribe(to: request)
         // Revalidate
         self.revalidate()
     }
@@ -30,8 +30,8 @@ public struct RemoteObject<Delegate> : DynamicProperty where Delegate: RemoteObj
     
     public mutating func updateRequest(request: RemoteRequest<Delegate.Element.ID>) {
         if !waitForRequest {
-            self.store.unsubscribe(to: self.request)
-            self.store.subscribe(to: request)
+            self.store.realtimeController.unsubscribe(to: self.request)
+            self.store.realtimeController.subscribe(to: request)
         }
         self.waitForRequest = false
         self.request = request

@@ -15,13 +15,13 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     
     let cache: Cache<Delegate.Element>
     
-    var scheduler = Scheduler<Delegate>()
+    let scheduler = Scheduler<Delegate>()
+    
+    let realtimeController = RealtimeController<Delegate>()
     
     var needPush = Set<T.ID>()
     var needPull = Set<RemoteRequest<T.ID>>()
     var needPop  = Set<T>()
-    
-    var subscriptions = Set<RemoteRequest<T.ID>>()
 
     public nonisolated init(reference: String,
                             entryLifetime: TimeInterval = 12 * 60 * 60,
@@ -127,20 +127,5 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
             self.revalidate(request: request)
         }
         return Delegate.shared.process(elements: objects.compactMap { $0 }, for: request)
-    }
-}
-
-extension Store {
-    func subscribe(to request: RemoteRequest<T.ID>) {
-        guard !self.subscriptions.contains(request) else { return }
-        // Ask delegate
-        if Delegate.shared.subscribe(request: request) {
-            self.subscriptions.insert(request)
-        }
-    }
-    
-    func unsubscribe(to request: RemoteRequest<T.ID>) {
-        guard self.subscriptions.contains(request) else { return }
-        Delegate.shared.unsubscribe(request: request)
     }
 }
