@@ -7,8 +7,6 @@
 
 import Foundation
 
-public protocol RemoteRepresentable: Codable, Hashable, Identifiable where ID: Codable & Hashable {}
-
 public protocol RemoteObjectDelegate<Element> {
     associatedtype Element: RemoteRepresentable
     static var shared: Self { get }
@@ -42,7 +40,7 @@ public extension RemoteObjectDelegate {
     }
     
     func connect(heartbeat: Bool) async -> Bool {
-        return false
+        return true // No WebSockets to be conencted
     }
     func subscribe(request: RemoteRequest<Element.ID>) -> Bool {
         return false

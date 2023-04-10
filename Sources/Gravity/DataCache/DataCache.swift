@@ -8,67 +8,61 @@
 import Foundation
 import Combine
 
-public class DataCache<Object>: ObservableObject where Object: RemoteRepresentable {
-    public let logger = Logger()
-    private let cache: URLCache
+public protocol DataCache<Object>: ObservableObject {
+    associatedtype Object: RemoteData
     
-    public init(cache: URLCache = .shared) {
-        self.cache = cache
+    var cache: URLCache { get }
+    var objectWillChange: ObservableObjectPublisher { get }
+    
+    func fetch(using request: URLRequest) async throws -> Data
+    
+    func urlRequests(for request: RemoteRequest<Object.ID>) -> [URLRequest]
+}
+
+extension DataCache {
+    public var logger: Logger {
+        return Logger()
     }
     
-    public func push(_ data: [Data], for request: RemoteRequest<Object.ID>) {
+    public func pull(for request: RemoteRequest<Object.ID>) -> [Object.ObjectData] {
         let urlRequests = urlRequests(for: request)
-        if urlRequests.count != data.count {
-            logger.log(DataCacheError.urlRequestCreationFailed)
-            return
+        return urlRequests.compactMap { req in
+            guard let data = cache.cachedResponse(for: req)?.data else {
+                Task.detached {
+                    do {
+                        let fetchedData = try await self.fetch(using: req)
+                        self.cache.storeCachedResponse(CachedURLResponse(response: URLResponse(), data: fetchedData), for: req)
+                        self.objectWillChange.send()
+                    } catch {
+                        self.logger.log(error)
+                    }
+                }
+                return nil
+            }
+            return Object.object(from: data)
         }
-        
-        for (index, urlRequest) in urlRequests.enumerated() {
-            let response = HTTPURLResponse(url: urlRequest.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
-            let cachedResponse = CachedURLResponse(response: response, data: data[index])
-            cache.storeCachedResponse(cachedResponse, for: urlRequest)
-        }
-        
-        objectWillChange.send()
     }
     
-    public func pull(for request: RemoteRequest<Object.ID>) -> [Data?] {
-        let urlRequests = urlRequests(for: request)
-        return urlRequests.map { cache.cachedResponse(for: $0)?.data }
-    }
-    
-    public func pop(for request: RemoteRequest<Object.ID>) {
-        let urlRequests = urlRequests(for: request)
-        urlRequests.forEach { cache.removeCachedResponse(for: $0) }
-        objectWillChange.send()
-    }
-    
-    public func pushSingle(_ data: Data, for id: Object.ID) {
-        push([data], for: .id(id))
-    }
-    
-    public func pullSingle(for id: Object.ID) -> Data? {
-        return pull(for: .id(id)).first ?? nil
-    }
-    
-    public func popSingle(for id: Object.ID) {
-        pop(for: .id(id))
+    public func pullSingle(for id: Object.ID) -> Object.ObjectData? {
+        return pull(for: .id(id)).first
     }
     
     public func removeAllData() {
         cache.removeAllCachedResponses()
         objectWillChange.send()
     }
-    
-    func urlRequests(for request: RemoteRequest<Object.ID>) -> [URLRequest] {
-        // Implement your URLRequest creation logic based on the RemoteRequest
-        // For example:
-        // let urls = ["https://your-api.com/data/\(request.rawValue)/image1", "https://your-api.com/data/\(request.rawValue)/image2"]
-        // return urls.map { URLRequest(url: URL(string: $0)!) }
-        return []
-    }
 }
 
 public enum DataCacheError: Error {
     case urlRequestCreationFailed
+}
+
+public extension DataCache {
+    func fetch(using request: URLRequest) async throws -> Data {
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, 200..<300 ~= httpResponse.statusCode else {
+            throw DataCacheError.urlRequestCreationFailed
+        }
+        return data
+    }
 }
