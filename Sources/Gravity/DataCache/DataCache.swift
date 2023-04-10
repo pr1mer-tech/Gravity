@@ -11,7 +11,7 @@ import Combine
 public protocol DataCache<Object>: ObservableObject {
     associatedtype Object: RemoteData
     
-    var cache: URLCache { get }
+    var cacheDirectoryName: String { get }
     var objectWillChange: ObservableObjectPublisher { get }
     
     func fetch(using request: URLRequest) async throws -> Data
@@ -20,29 +20,64 @@ public protocol DataCache<Object>: ObservableObject {
 }
 
 extension DataCache {
+    public var cacheDirectory: URL {
+        let fileManager = FileManager.default
+        let urls = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)
+        let directoryURL = urls[0].appendingPathComponent(cacheDirectoryName)
+        if !fileManager.fileExists(atPath: directoryURL.path) {
+            try? fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
+        }
+        return directoryURL
+    }
+    
     public var logger: Logger {
         return Logger()
     }
     
+    private func cachedData(for request: URLRequest) -> Data? {
+        guard let url = request.url, let fileName = url.absoluteString.addingPercentEncoding(withAllowedCharacters: .alphanumerics) else {
+            return nil
+        }
+        let fileURL = cacheDirectory.appendingPathComponent(fileName)
+        return try? Data(contentsOf: fileURL)
+    }
+    
+    private func storeCachedData(_ data: Data, for request: URLRequest) {
+        guard let url = request.url, let fileName = url.absoluteString.addingPercentEncoding(withAllowedCharacters: .alphanumerics) else {
+            return
+        }
+        let fileURL = cacheDirectory.appendingPathComponent(fileName)
+        do {
+            try data.write(to: fileURL)
+        } catch {
+            logger.log(error)
+        }
+    }
+    
     public func pull(for request: RemoteRequest<Object.ID>) -> [Object.ObjectData] {
         let urlRequests = urlRequests(for: request)
-        return urlRequests.compactMap { req in
-            guard let data = cache.cachedResponse(for: req)?.data else {
+        var objects: [Object.ObjectData] = []
+        
+        for req in urlRequests {
+            if let data = cachedData(for: req) {
+                let object = Object.object(from: data)
+                objects.append(object)
+            } else {
                 Task.detached {
                     do {
                         let fetchedData = try await self.fetch(using: req)
+                        self.storeCachedData(fetchedData, for: req)
                         await MainActor.run {
-                            self.cache.storeCachedResponse(CachedURLResponse(response: URLResponse(), data: fetchedData), for: req)
                             self.objectWillChange.send()
                         }
                     } catch {
                         self.logger.log(error)
                     }
                 }
-                return nil
             }
-            return Object.object(from: data)
         }
+        
+        return objects
     }
     
     public func pullSingle(for id: Object.ID) -> Object.ObjectData? {
@@ -50,7 +85,7 @@ extension DataCache {
     }
     
     public func removeAllData() {
-        cache.removeAllCachedResponses()
+        try? FileManager.default.removeItem(at: cacheDirectory)
         objectWillChange.send()
     }
 }

@@ -109,7 +109,7 @@ private extension Cache {
             }
             
             keys.remove(entry.value.id)
-            requestCache.forEach { $1.keys.remove(entry.value.id) }
+//            requestCache.forEach { $1.keys.remove(entry.value.id) }
 //            requestCache = requestCache.filter { !$1.keys.contains(entry.value.id) } // Removing all request where entry was dropped
         }
     }
@@ -150,12 +150,13 @@ extension Cache: Codable {
         
         self.init(reference: reference, entryLifetime: entryLifetime, maximumEntryCount: maximumEntryCount)
         
-        let entries = try container.decode([Entry].self, forKey: .entries)
-        entries.forEach(insert)
         keyTracker.requestCache = try container.decode(
             Dictionary<[Key], WrappedKeys<Key>>.self,
             forKey: .requestCache
-        )
+        ).filter { !$0.value.keys.isEmpty }
+        
+        let entries = try container.decode([Entry].self, forKey: .entries)
+        entries.forEach(insert)
     }
 
     
