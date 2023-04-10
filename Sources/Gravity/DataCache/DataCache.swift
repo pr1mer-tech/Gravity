@@ -31,8 +31,10 @@ extension DataCache {
                 Task.detached {
                     do {
                         let fetchedData = try await self.fetch(using: req)
-                        self.cache.storeCachedResponse(CachedURLResponse(response: URLResponse(), data: fetchedData), for: req)
-                        self.objectWillChange.send()
+                        await MainActor.run {
+                            self.cache.storeCachedResponse(CachedURLResponse(response: URLResponse(), data: fetchedData), for: req)
+                            self.objectWillChange.send()
+                        }
                     } catch {
                         self.logger.log(error)
                     }
