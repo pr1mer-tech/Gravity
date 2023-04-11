@@ -22,7 +22,12 @@ extension CacheDecodable {
         if fileManager.fileExists(atPath: url.path) {
             // File exists
             let data = try Data(contentsOf: url)
-            self = try JSONDecoder().decode(Self.self, from: data)
+            do {
+                self = try JSONDecoder().decode(Self.self, from: data)
+            } catch {
+                try fileManager.removeItem(atPath: url.path)
+                throw error
+            }
         } else {
             self.init(referenceID: reference)
         }

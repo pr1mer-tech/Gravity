@@ -8,14 +8,17 @@
 import Foundation
 import Network
 
-final class RealtimeController<Delegate> where Delegate: RemoteObjectDelegate {
+public final class RealtimeController<Delegate> where Delegate: RemoteObjectDelegate {
     var subscriptions = Set<RemoteRequest<Delegate.Element.ID>>()
+    var subscribed = Set<RemoteRequest<Delegate.Element.ID>>()
     
     var heartbeatTimer: Timer?
-    var heartbeatInterval: TimeInterval = 30
+    var heartbeatInterval: TimeInterval = 5
     
     let pathMonitor = NWPathMonitor()
     var isMonitoring = false
+    
+    var isConnected = false
     
     init() {
         self.startMonitoring()
@@ -56,7 +59,14 @@ final class RealtimeController<Delegate> where Delegate: RemoteObjectDelegate {
     }
     
     func connect(retryingAfter: TimeInterval = 0) async {
-        if await !Delegate.shared.connect(heartbeat: false) {
+        let connect = await Delegate.shared.connect(heartbeat: false)
+        guard connect != nil else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                Task { await self.connect(retryingAfter: 0) }
+            }
+            return
+        }
+        if !connect! {
             print("Gravity: Connection failed")
             // Retry exponentially
             guard retryingAfter < 60 else { return } // Too many retries
@@ -66,6 +76,8 @@ final class RealtimeController<Delegate> where Delegate: RemoteObjectDelegate {
             }
             return
         }
+        self.isConnected = connect!
+        guard self.isConnected else { return }
         // Start heartbeat
         if self.heartbeatTimer != nil {
             self.heartbeatTimer?.invalidate()
@@ -73,28 +85,44 @@ final class RealtimeController<Delegate> where Delegate: RemoteObjectDelegate {
         self.heartbeatTimer = Timer.scheduledTimer(withTimeInterval: heartbeatInterval, repeats: true) { _ in
             Task { await self.heartbeat() }
         }
+        await self.heartbeat()
     }
     
     func heartbeat() async {
-        if await !Delegate.shared.connect(heartbeat: true) {
+        let connect = await Delegate.shared.connect(heartbeat: true)
+        guard connect != nil else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                Task { await self.connect(retryingAfter: 0) }
+            }
+            return
+        }
+        if !connect! {
             print("Gravity: Heartbeat failed")
             // Unsubscribe from all
-            self.subscriptions.forEach { self.unsubscribe(to: $0) }
+            self.subscriptions.forEach { self.subscribed.remove($0) }
             // Reconnect
             await self.connect()
         }
-    }
-    
-    func subscribe(to request: RemoteRequest<Delegate.Element.ID>) {
-        guard !self.subscriptions.contains(request) else { return }
-        // Ask delegate
-        if Delegate.shared.subscribe(request: request) {
-            self.subscriptions.insert(request)
+        self.isConnected = connect!
+        guard self.isConnected else { return }
+        
+        self.subscriptions.subtracting(self.subscribed).forEach { sub in
+            // Ask delegate
+            if Delegate.shared.subscribe(request: sub) {
+                self.subscribed.insert(sub)
+            }
         }
     }
     
-    func unsubscribe(to request: RemoteRequest<Delegate.Element.ID>) {
+    public func subscribe(to request: RemoteRequest<Delegate.Element.ID>) {
+        guard !self.subscriptions.contains(request) else { return }
+        self.subscriptions.insert(request)
+    }
+    
+    public func unsubscribe(to request: RemoteRequest<Delegate.Element.ID>) {
         guard self.subscriptions.contains(request) else { return }
         Delegate.shared.unsubscribe(request: request)
+        self.subscriptions.remove(request)
+        self.subscribed.remove(request)
     }
 }

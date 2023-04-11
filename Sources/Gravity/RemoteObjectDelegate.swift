@@ -22,7 +22,7 @@ public protocol RemoteObjectDelegate<Element> {
     func pop(elements: [Element]) async throws
     
     // Reactivity
-    func connect(heartbeat: Bool) async -> Bool
+    func connect(heartbeat: Bool) async -> Bool?
     func subscribe(request: RemoteRequest<Element.ID>) -> Bool
     func unsubscribe(request: RemoteRequest<Element.ID>)
 }
@@ -39,7 +39,7 @@ public extension RemoteObjectDelegate {
         fatalError("Not Implemented")
     }
     
-    func connect(heartbeat: Bool) async -> Bool {
+    func connect(heartbeat: Bool) async -> Bool? {
         return true // No WebSockets to be conencted
     }
     func subscribe(request: RemoteRequest<Element.ID>) -> Bool {

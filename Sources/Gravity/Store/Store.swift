@@ -17,7 +17,7 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     
     let scheduler = Scheduler<Delegate>()
     
-    let realtimeController = RealtimeController<Delegate>()
+    public let realtimeController = RealtimeController<Delegate>()
     
     var needPush = Set<T.ID>()
     var needPull = Set<RemoteRequest<T.ID>>()
@@ -99,6 +99,7 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
             try scheduler.requestSync(delay: interval)
         }
         cache.removeValue(forKey: element.id)
+        try? cache.saveToDisk()
         // Notify all views that something has changed
         self.objectWillChange.send()
     }
@@ -127,5 +128,13 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
             self.revalidate(request: request)
         }
         return Delegate.shared.process(elements: objects.compactMap { $0 }, for: request)
+    }
+    
+    /// Reset cache
+    public func reset() {
+        cache.entryCache.removeAllObjects()
+        cache.keyTracker.keys.removeAll()
+        cache.keyTracker.requestCache.removeAll()
+        try? cache.saveToDisk()
     }
 }

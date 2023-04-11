@@ -17,7 +17,7 @@ final class Cache<Element> where Element: RemoteRepresentable {
     
     private let dateProvider: () -> Date
     var entryLifetime: TimeInterval
-    private let keyTracker = KeyTracker()
+    let keyTracker = KeyTracker()
     
     internal var reference: String
     
@@ -70,6 +70,7 @@ final class Cache<Element> where Element: RemoteRepresentable {
     
     func removeValue(forKey key: Key) {
         entryCache.removeObject(forKey: WrappedKey(key))
+        keyTracker.requestCache = keyTracker.requestCache.filter { !$1.keys.contains(key) } // Removing all request where entry was dropped
     }
     
     var allKeys: [Key]? {
@@ -96,7 +97,7 @@ extension Cache {
     }
 }
 
-private extension Cache {
+extension Cache {
     final class KeyTracker: NSObject, NSCacheDelegate {
         var keys = Set<Key>()
         
