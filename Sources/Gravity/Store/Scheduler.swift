@@ -18,7 +18,11 @@ class Scheduler<Delegate> where Delegate: RemoteObjectDelegate {
                 try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             }
             // Sync
-            try await Delegate.shared.sync()
+            do {
+                try await Delegate.shared.sync()
+            } catch {
+                Delegate.shared.store.logger.log(error)
+            }
         }
         Task {
             let result = await self.task?.result
