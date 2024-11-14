@@ -1,0 +1,28 @@
+import { Callout } from 'nextra-theme-docs'
+import Link from 'next/link'
+
+# 2. Define the controller
+In order to pull and push the data from the database, we need to define the controller. The controller is the place where we define the logic of the application.
+
+```swift
+import Gravity
+
+final class LandmarkBase: RemoteObjectDelegate {
+    typealias Element = Landmark // Tells the RemoteObjectDelegate which type of object it is working with
+
+    var store = try! Store<LandmarkBase>(reference: "landmarks") // Defines the store where the data will be stored and cached
+
+    func pull(request: RemoteRequest<Landmark>) async throws -> [Landmark] {
+        // Fetches the data from the database
+    }
+    
+    func push(elements: [Landmark]) async throws {
+        // Pushes the data to the database
+    }
+    
+    static var shared = LandmarkBase() // Defines the shared instance of the controller
+}
+```
+<Callout emoji="💡">
+    The `RemoteObjectDelegate` protocol also supports other methods, and you can find more information about them in the <Link href="/docs/remote-object-delegate">RemoteObjectDelegate</Link> page.
+</Callout>

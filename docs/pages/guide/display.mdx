@@ -1,0 +1,32 @@
+import { Callout } from 'nextra-theme-docs'
+
+# 3. Display your data
+Now that you have your data model & controller set up, you can display your data in your views. There are two ways to do this, depending on the type of data you want to display.
+
+## Displaying a single record
+If you want to display a single record, you can use the `RemoteObject` property wrapper. This property wrapper will fetch the data from the server depending on your request, and will update the view when the data changes. You can use this property wrapper in your view almost like a `@State` property wrapper.
+```swift
+@RemoteObject<LandmarkBase>(request: .id("any-id")) var landmark
+```
+Sometimes, you also might want to wait for the request before loading the data. In that case, you can use the `RemoteObject` property wrapper with the `waitForRequest` parameter.
+```swift
+@RemoteObject<LandmarkBase>(waitForRequest: true) var landmark
+
+init(id: String) {
+    _landmark.updateRequest(request: .id(id))
+}
+```
+
+## Displaying multiple records
+If you want to display multiple records, you can use the `RemoteObjects` property wrapper. It works almost the same as the `RemoteObject` property wrapper, but it will fetch multiple records instead of a single record.
+```swift
+@RemoteObjects<LandmarkBase>(request: .all) var landmarks
+```
+You can also use the `RemoteObjects` property wrapper with the `waitForRequest` parameter.
+```swift
+@RemoteObjects<LandmarkBase>(waitForRequest: true) var landmarks
+
+init(ids: [String]) {
+    _landmarks.updateRequest(request: .ids(ids)) // Or you can use .all to fetch all records
+}
+```

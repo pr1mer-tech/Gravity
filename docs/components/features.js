@@ -56,7 +56,7 @@ export default function Features() {
           }
         />
         <Feature
-          text="Realtime"
+          text="Fast"
           icon={
             <svg
               width="24"
@@ -111,7 +111,7 @@ export default function Features() {
           }
         />
         <Feature
-          text="WebSocket support"
+          text="Realtime Support"
           icon={
             <svg
               width="24"

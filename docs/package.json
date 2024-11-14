@@ -10,13 +10,13 @@
     "start": "next start"
   },
   "dependencies": {
-    "next": "^10.0.3",
-    "nextra": "^0.3.2",
-    "nextra-theme-docs": "^1.0.2",
+    "next": "^13.2.3",
+    "nextra": "^2.2.17",
+    "nextra-theme-docs": "^2.2.17",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sass": "^1.32.8",
     "prism-react-renderer": "^1.2.0",
-    "prismjs": "^1.23.0",
-    "react": "16",
-    "react-dom": "16",
-    "sass": "^1.32.8"
+    "prismjs": "^1.23.0"
   }
 }

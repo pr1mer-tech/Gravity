@@ -1,0 +1,22 @@
+import { Callout } from 'nextra-theme-docs'
+import Link from 'next/link'
+
+# 1. Define your model
+
+For normal RESTful APIs with JSON data, first you need to create a model structure, which represents the expected result:
+
+```swift
+import Gravity
+
+struct Landmark: RemoteRepresentable {
+    var id: Int
+    var name: String
+    var park: String
+    var state: String
+    var description: String
+}
+```
+
+<Callout emoji="💡">
+    The `RemoteRepresentable` protocol is a special protocol that makes it possible to cache the data in the local storage. It automatically conforms to the `Codable`, `Hashable`, `Identifiable` protocols, so you don't need to implement them manually.
+</Callout>
