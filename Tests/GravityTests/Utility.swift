@@ -21,8 +21,8 @@ struct User: RemoteRepresentable {
         case female
     }
 }
-
-struct UserBase: RemoteObjectDelegate {
+@MainActor
+struct UserBase: @preconcurrency RemoteObjectDelegate {
     typealias Element = User
     
     var store = try! Store<UserBase>(reference: "users", maximumEntryCount: 1100)

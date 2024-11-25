@@ -33,12 +33,13 @@ extension CacheDecodable {
         }
     }
 }
-extension Cache: CacheDecodable {
+@MainActor
+extension Cache: @preconcurrency CacheDecodable {
     convenience init(referenceID: String) {
         self.init(reference: referenceID, dateProvider: Date.init, entryLifetime: 12 * 60 * 60, maximumEntryCount: 50)
     }
     
-    static func cacheURL(for reference: String) -> URL {
+    static nonisolated func cacheURL(for reference: String) -> URL {
         let folderURLs = FileManager.default.urls(
             for: .cachesDirectory,
             in: .userDomainMask
@@ -47,11 +48,11 @@ extension Cache: CacheDecodable {
         return folderURLs[0].appendingPathComponent(reference + ".cache")
     }
     
-    var cacheURL: URL {
+    nonisolated var cacheURL: URL {
         Cache.cacheURL(for: reference)
     }
     
-    func saveToDisk() throws {
+    nonisolated func saveToDisk() throws {
         let data = try JSONEncoder().encode(self)
         try data.write(to: cacheURL)
     }

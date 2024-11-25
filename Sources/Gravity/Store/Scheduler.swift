@@ -21,7 +21,7 @@ class Scheduler<Delegate> where Delegate: RemoteObjectDelegate {
             do {
                 try await Delegate.shared.sync()
             } catch {
-                Delegate.shared.store.logger.log(error)
+                await Delegate.shared.store.logger.log(error)
             }
         }
         Task {

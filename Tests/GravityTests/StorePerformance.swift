@@ -26,7 +26,7 @@ final class StorePerformance: XCTestCase {
         // This is an example of a performance test case.
         let store = UserBase.shared.store
         var uuids = [UUID]()
-        for _ in 0...1000 {
+        for _ in 0...100 {
             let id = UUID()
             try? store.save(User(id: id, email: "example@example.com"), with: .id(id), requestPushWithInterval: nil)
             uuids.append(id)

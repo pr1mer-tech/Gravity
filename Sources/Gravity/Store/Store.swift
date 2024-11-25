@@ -23,7 +23,7 @@ public class Store<Delegate>: ObservableObject where Delegate: RemoteObjectDeleg
     var needPull = Set<RemoteRequest<T.ID>>()
     var needPop  = Set<T>()
 
-    public nonisolated init(reference: String,
+    public init(reference: String,
                             entryLifetime: TimeInterval = 12 * 60 * 60,
                             maximumEntryCount: Int = 50) throws {
         self.cache = try Cache<Delegate.Element>(withReference: reference)

@@ -65,7 +65,7 @@ public enum RemoteRequest<T: Codable & Hashable>: Hashable {
         switch self {
         case .ids(let array):
             return array.isEmpty
-        case .id(let t):
+        case .id(_):
             return false
         case .all:
             return false

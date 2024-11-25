@@ -8,6 +8,7 @@
 import CoreData
 import Foundation
 
+@MainActor
 final class Cache<Element> where Element: RemoteRepresentable {
     typealias Key = Element.ID
     typealias Value = Element
@@ -19,7 +20,7 @@ final class Cache<Element> where Element: RemoteRepresentable {
     var entryLifetime: TimeInterval
     let keyTracker = KeyTracker()
     
-    internal var reference: String
+    internal nonisolated let reference: String
     
     internal init(reference: String,
          dateProvider: @escaping () -> Date = Date.init,
@@ -42,7 +43,7 @@ final class Cache<Element> where Element: RemoteRepresentable {
         entryCache.setObject(entry, forKey: WrappedKey(value.id))
         let reqIds = request.ids
         if keyTracker.requestCache[reqIds] == nil {
-            keyTracker.requestCache[reqIds] = WrappedKeys(.init(arrayLiteral: value.id))
+            keyTracker.requestCache.updateValue(WrappedKeys(.init(arrayLiteral: value.id)), forKey: reqIds)
         } else {
             keyTracker.requestCache[reqIds]?.keys.insert(value.id)
         }
@@ -98,7 +99,8 @@ extension Cache {
 }
 
 extension Cache {
-    final class KeyTracker: NSObject, NSCacheDelegate {
+    @MainActor
+    final class KeyTracker: NSObject, @preconcurrency NSCacheDelegate {
         var keys = Set<Key>()
         
         var requestCache = Dictionary<[Key], WrappedKeys<Key>>()
@@ -116,7 +118,7 @@ extension Cache {
     }
 }
 
-extension Cache: Codable {
+extension Cache: @preconcurrency Codable {
     fileprivate func insert(entry: Entry) {
         entryCache.setObject(entry, forKey: WrappedKey(entry.value.id))
         keyTracker.keys.insert(entry.value.id)
@@ -172,7 +174,7 @@ extension Cache: Codable {
 }
 
 
-extension Cache: Equatable {
+extension Cache: @preconcurrency Equatable {
     static func == (lhs: Gravity.Cache<Element>, rhs: Gravity.Cache<Element>) -> Bool {
         guard lhs.keyTracker.keys.count == rhs.keyTracker.keys.count else { return false }
         // Use reduce to check if all keys are equal
